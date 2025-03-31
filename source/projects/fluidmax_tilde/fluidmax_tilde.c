@@ -685,46 +685,96 @@ void fluidmax_select(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 
 void fluidmax_reverb(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 {
-    // if (argc == 0) {
-    //     fluid_synth_set_reverb_on(x->synth, 1);
-    //     fluid_synth_reset_reverb(x->synth);
-    //     x->reverb = 1;
-    // } else if (is_number(argv)) {
-    //     double room = fluid_synth_get_reverb_roomsize(x->synth);
-    //     double damping = fluid_synth_get_reverb_damp(x->synth);
-    //     double width = fluid_synth_get_reverb_width(x->synth);
+    int res;
+    double roomsize, damping, width, level;
 
-    //     fluid_synth_set_reverb_on(x->synth, 1);
-    //     x->reverb = 1;
+    if (argc == 0) {
+        // fluid_synth_set_reverb_on(x->synth, 1);
+        fluid_synth_reverb_on(x->synth, -1, 1);
+        // fluid_synth_reset_reverb(x->synth);
+        x->reverb = 1;
+    } else if (is_number(argv)) {
+        res = fluid_synth_get_reverb_group_roomsize(x->synth, -1, &roomsize);
+        if (res != FLUID_OK) {
+            object_error((t_object*)x, "could not get reverb group roomsize");
+            goto exception;
+        }
+        res = fluid_synth_get_reverb_group_damp(x->synth, -1, &damping);
+        if (res != FLUID_OK) {
+            object_error((t_object*)x, "could not get reverb group damping value");
+            goto exception;
+        }
+        res = fluid_synth_get_reverb_group_width(x->synth, -1, &width);
+        if (res != FLUID_OK) {
+            object_error((t_object*)x, "could not get reverb group width value");
+            goto exception;
+        }
+        res = fluid_synth_get_reverb_group_level(x->synth, -1, &level);
+        if (res != FLUID_OK) {
+            object_error((t_object*)x, "could not get reverb group level");
+            goto exception;
+        }
 
-    //     switch (argc) {
-    //     default:
-    //     case 4:
-    //         if (is_number(argv + 3))
-    //             width = get_number_as_float(argv + 3);
-    //     case 3:
-    //         if (is_number(argv + 2))
-    //             damping = get_number_as_float(argv + 2);
-    //     case 2:
-    //         if (is_number(argv + 1))
-    //             room = get_number_as_float(argv + 1);
-    //     case 1:
-    //         fluid_synth_set_reverb(x->synth, room, damping, width,
-    //                                get_number_as_float(argv));
-    //     case 0:
-    //         break;
-    //     }
-    // } else if (is_symbol(argv)) {
-    //     t_symbol* sym = atom_getsym(argv);
+        // fluid_synth_set_reverb_on(x->synth, 1);
+        fluid_synth_reverb_on(x->synth, -1, 1);
+        x->reverb = 1;
 
-    //     if (sym == gensym("on")) {
-    //         fluid_synth_set_reverb_on(x->synth, 1);
-    //         x->reverb = 1;
-    //     } else if (sym == gensym("off")) {
-    //         fluid_synth_set_reverb_on(x->synth, 0);
-    //         x->reverb = 0;
-    //     }
-    // }
+        switch (argc) {
+        default:
+        case 4:
+            if (is_number(argv + 3))
+                width = get_number_as_float(argv + 3);
+        case 3:
+            if (is_number(argv + 2))
+                damping = get_number_as_float(argv + 2);
+        case 2:
+            if (is_number(argv + 1))
+                roomsize = get_number_as_float(argv + 1);
+        case 1: 
+            {
+            level = get_number_as_float(argv);
+            res = fluid_synth_set_reverb_group_roomsize(x->synth, -1, roomsize);
+            if (res != FLUID_OK) {
+                object_error((t_object*)x, "could not set reverb group roomsize");
+                goto exception;
+            }
+            res = fluid_synth_set_reverb_group_damp(x->synth, -1, damping);
+            if (res != FLUID_OK) {
+                object_error((t_object*)x, "could not set reverb group damping value");
+                goto exception;
+            }
+            res = fluid_synth_set_reverb_group_width(x->synth, -1, width);
+            if (res != FLUID_OK) {
+                object_error((t_object*)x, "could not set reverb group width value");
+                goto exception;
+            }
+            res = fluid_synth_set_reverb_group_level(x->synth, -1, level);
+            if (res != FLUID_OK) {
+                object_error((t_object*)x, "could not set reverb group level");
+                goto exception;
+            }
+            }
+        //     fluid_synth_set_reverb(x->synth, room, damping, width,
+        //                            get_number_as_float(argv));
+        // case 0:
+            break;
+        }
+    } else if (is_symbol(argv)) {
+        t_symbol* sym = atom_getsym(argv);
+
+        if (sym == gensym("on")) {
+            // fluid_synth_set_reverb_on(x->synth, 1);
+            fluid_synth_reverb_on(x->synth, -1, 1);
+            x->reverb = 1;
+        } else if (sym == gensym("off")) {
+            // fluid_synth_set_reverb_on(x->synth, 0);
+            fluid_synth_reverb_on(x->synth, -1, 0);
+            x->reverb = 0;
+        }
+    }
+
+exception:
+    object_error((t_object*)x, "could not get/set reverb value");
 }
 
 void fluidmax_chorus(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)

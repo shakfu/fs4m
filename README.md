@@ -1,6 +1,6 @@
 # fs4m: fluidsynth for max
 
-An ongoing experiment to modernize the old Ircam (max 4) `fluidmax~` fluidsynth for max external by Norbert Schnell.
+An ongoing experiment to modernize the old Ircam (max 4) `fluidmax~` fluidsynth for max external by Norbert Schnell and update it for use by Max 8/9 and fluidsynth 2.4.x
 
 So far this consists of trying to get a minimal external working with the modern fluidsynth (`fs4m~`) and converting `fluidmax~` to modern idioms.
 
