@@ -1,2 +1,3 @@
 # fs4m
-towards a modern fluidsynth for max 
+
+An experiment to modernize the old `fluidmax~` fluidsynth for max external.
