@@ -15,4 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [0.0.x]
 
-- project created 
+- eliminated all remaining warnings.
+
+- refactored long functions.
+
+- converted old `fluidmax~` external to moderns idioms.
+
+- project created.
