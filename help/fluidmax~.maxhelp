@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 196.0, 104.0, 760.0, 762.0 ],
+		"rect" : [ 97.0, 104.0, 760.0, 762.0 ],
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
@@ -827,12 +827,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-23",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 393.0, 60.0, 281.0, 17.0 ],
+					"patching_rect" : [ 422.0, 60.0, 372.0, 20.0 ],
 					"text" : "output list of presets: <name> <soundfont> <bank> <program>"
 				}
 
@@ -840,12 +840,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-24",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 410.0, 78.0, 369.0, 17.0 ],
+					"patching_rect" : [ 422.0, 78.0, 488.0, 20.0 ],
 					"text" : "output list of presets of given soundfont: <name> <soundfont> <bank> <program>"
 				}
 
@@ -853,12 +853,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-25",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 389.0, 132.0, 405.0, 17.0 ],
+					"patching_rect" : [ 422.0, 132.0, 538.0, 20.0 ],
 					"text" : "output 'off' or current chorus parameters: <level> <speed> <depth> <type> <# of units>"
 				}
 
@@ -866,12 +866,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-26",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 390.0, 114.0, 381.0, 17.0 ],
+					"patching_rect" : [ 422.0, 114.0, 505.0, 20.0 ],
 					"text" : "output 'off' or current reverb parameters: <level> <room size> <damping> <width>"
 				}
 
@@ -879,12 +879,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-27",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 405.0, 42.0, 250.0, 17.0 ],
+					"patching_rect" : [ 422.0, 42.0, 330.0, 20.0 ],
 					"text" : "output list of soundfonts: <stack index> <name> <id>"
 				}
 
@@ -892,12 +892,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-28",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 395.0, 96.0, 415.0, 17.0 ],
+					"patching_rect" : [ 422.0, 96.0, 551.0, 20.0 ],
 					"text" : "output selected preset for each channel: <channel> <soundfont> <bank> <program> <preset>"
 				}
 
@@ -932,13 +932,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-31",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 59.0, 63.0, 19.0 ],
+					"patching_rect" : [ 327.0, 59.0, 82.0, 22.0 ],
 					"text" : "info presets"
 				}
 
@@ -946,13 +946,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-32",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 77.0, 80.0, 19.0 ],
+					"patching_rect" : [ 327.0, 77.0, 104.0, 22.0 ],
 					"text" : "info presets GM"
 				}
 
@@ -960,13 +960,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-33",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 131.0, 59.0, 19.0 ],
+					"patching_rect" : [ 327.0, 131.0, 75.0, 22.0 ],
 					"text" : "info chorus"
 				}
 
@@ -974,13 +974,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-34",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 113.0, 60.0, 19.0 ],
+					"patching_rect" : [ 327.0, 113.0, 77.0, 22.0 ],
 					"text" : "info reverb"
 				}
 
@@ -988,13 +988,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-35",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 41.0, 75.0, 19.0 ],
+					"patching_rect" : [ 327.0, 41.0, 97.0, 22.0 ],
 					"text" : "info soundfonts"
 				}
 
@@ -1002,13 +1002,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-36",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 95.0, 65.0, 19.0 ],
+					"patching_rect" : [ 327.0, 95.0, 83.0, 22.0 ],
 					"text" : "info channels"
 				}
 
@@ -1961,13 +1961,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 18.0,
+					"fontsize" : 12.0,
 					"id" : "obj-104",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "signal", "signal", "anything" ],
-					"patching_rect" : [ 24.0, 581.0, 122.0, 29.0 ],
+					"patching_rect" : [ 24.0, 581.0, 122.0, 22.0 ],
 					"text" : "fluidsynth~"
 				}
 

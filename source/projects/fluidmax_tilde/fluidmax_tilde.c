@@ -338,9 +338,7 @@ void fluidmax_load(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                     return;
                 }
 
-                atom_setsym(
-                    &a,
-                    gensym(fluidmax_translate_fullpath(maxpath, fullpath)));
+                atom_setsym(&a, gensym(fluidmax_translate_fullpath(maxpath, fullpath)));
                 defer(x, (method)fluidmax_do_load, NULL, 1, &a);
             }
         }
@@ -400,8 +398,7 @@ void fluidmax_unload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                     }
                 }
 
-                error("fluidsynth~: cannot unload soundfont '%s'",
-                      sym->s_name);
+                error("fluidsynth~: cannot unload soundfont '%s'", sym->s_name);
             }
         }
     }
@@ -441,8 +438,7 @@ void fluidmax_reload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                         post("fluidsynth~: reloaded soundfont '%s' (id %d)",
                              name->s_name, id);
                     else
-                        error("fluidsynth~: cannot reload soundfont '%s' (id "
-                              "%d)",
+                        error("fluidsynth~: cannot reload soundfont '%s' (id %d)",
                               name->s_name, id);
                 }
             } else {
@@ -772,6 +768,7 @@ void fluidmax_reverb(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
             x->reverb = 0;
         }
     }
+    return;
 
 exception:
     object_error((t_object*)x, "could not get/set reverb value");
@@ -779,50 +776,110 @@ exception:
 
 void fluidmax_chorus(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 {
-    // if (argc == 0) {
-    //     fluid_synth_set_chorus_on(x->synth, 1);
-    //     fluid_synth_reset_chorus(x->synth);
-    //     x->chorus = 1;
-    // } else if (is_number(argv)) {
-    //     double speed = fluid_synth_get_chorus_speed_Hz(x->synth);
-    //     double depth = fluid_synth_get_chorus_depth_ms(x->synth);
-    //     int type = fluid_synth_get_chorus_type(x->synth);
-    //     int nr = fluid_synth_get_chorus_nr(x->synth);
+    int res, nr, type;
+    double level, speed, depth_ms;
 
-    //     fluid_synth_set_chorus_on(x->synth, 1);
-    //     x->chorus = 1;
+    if (argc == 0) {
+        // fluid_synth_set_chorus_on(x->synth, 1);
+        fluid_synth_chorus_on(x->synth, -1, 1);
+        // fluid_synth_reset_chorus(x->synth);
+        x->chorus = 1;
+    } else if (is_number(argv)) {
 
-    //     switch (argc) {
-    //     default:
-    //     case 5:
-    //         if (is_number(argv + 4))
-    //             nr = get_number_as_long(argv + 4);
-    //     case 4:
-    //         if (is_number(argv + 3))
-    //             type = get_number_as_long(argv + 3);
-    //     case 3:
-    //         if (is_number(argv + 2))
-    //             depth = get_number_as_float(argv + 2);
-    //     case 2:
-    //         if (is_number(argv + 1))
-    //             speed = get_number_as_float(argv + 1);
-    //     case 1:
-    //         fluid_synth_set_chorus(x->synth, nr, get_number_as_float(argv),
-    //                                speed, depth, type);
-    //     case 0:
-    //         break;
-    //     }
-    // } else if (is_symbol(argv)) {
-    //     t_symbol* sym = atom_getsym(argv);
+        res = fluid_synth_get_chorus_group_speed(x->synth, -1, &speed);
+        if (res != FLUID_OK) {
+            object_error((t_object*)x, "could not get chorus group speed");
+            goto exception;
+        }
+        res = fluid_synth_get_chorus_group_depth(x->synth, -1, &depth_ms);
+        if (res != FLUID_OK) {
+            object_error((t_object*)x, "could not get chorus group depth_ms value");
+            goto exception;
+        }
+        res = fluid_synth_get_chorus_group_type(x->synth, -1, &type);
+        if (res != FLUID_OK) {
+            object_error((t_object*)x, "could not get chorus group type value");
+            goto exception;
+        }
+        res = fluid_synth_get_chorus_group_nr(x->synth, -1, &nr);
+        if (res != FLUID_OK) {
+            object_error((t_object*)x, "could not get chorus group nr value");
+            goto exception;
+        }
+        res = fluid_synth_get_chorus_group_level(x->synth, -1, &level);
+        if (res != FLUID_OK) {
+            object_error((t_object*)x, "could not get chorus group level");
+            goto exception;
+        }
 
-    //     if (sym == gensym("on")) {
-    //         fluid_synth_set_chorus_on(x->synth, 1);
-    //         x->chorus = 1;
-    //     } else if (sym == gensym("off")) {
-    //         fluid_synth_set_chorus_on(x->synth, 0);
-    //         x->chorus = 0;
-    //     }
-    // }
+        fluid_synth_chorus_on(x->synth, -1, 1);
+        x->chorus = 1;
+
+        switch (argc) {
+        default:
+        case 5:
+            if (is_number(argv + 4))
+                nr = get_number_as_long(argv + 4);
+        case 4:
+            if (is_number(argv + 3))
+                type = get_number_as_long(argv + 3);
+        case 3:
+            if (is_number(argv + 2))
+                depth_ms = get_number_as_float(argv + 2);
+        case 2:
+            if (is_number(argv + 1))
+                speed = get_number_as_float(argv + 1);
+        case 1:
+            {
+            // fluid_synth_set_chorus(x->synth, nr, get_number_as_float(argv),
+            //                        speed, depth, type);
+
+            level = get_number_as_float(argv);
+
+            res = fluid_synth_set_chorus_group_nr(x->synth, -1, nr);
+            if (res != FLUID_OK) {
+                object_error((t_object*)x, "could not set chorus group nr");
+                goto exception;
+            }
+            res = fluid_synth_set_chorus_group_level(x->synth, -1, level);
+            if (res != FLUID_OK) {
+                object_error((t_object*)x, "could not set chorus group level");
+                goto exception;
+            }
+            res = fluid_synth_set_chorus_group_speed(x->synth, -1, speed);
+            if (res != FLUID_OK) {
+                object_error((t_object*)x, "could not set chorus group speed");
+                goto exception;
+            }
+            res = fluid_synth_set_chorus_group_depth(x->synth, -1, depth_ms);
+            if (res != FLUID_OK) {
+                object_error((t_object*)x, "could not set chorus group depth_ms");
+                goto exception;
+            }
+            res = fluid_synth_set_chorus_group_type(x->synth, -1, type);
+            if (res != FLUID_OK) {
+                object_error((t_object*)x, "could not set chorus group type");
+                goto exception;
+            }
+            }
+        case 0:
+            break;
+        }
+    } else if (is_symbol(argv)) {
+        t_symbol* sym = atom_getsym(argv);
+
+        if (sym == gensym("on")) {
+            fluid_synth_chorus_on(x->synth, -1, 1);
+            x->chorus = 1;
+        } else if (sym == gensym("off")) {
+            fluid_synth_chorus_on(x->synth, -1, 0);
+            x->chorus = 0;
+        }
+    }
+    return;
+
+exception:
+    object_error((t_object*)x, "could not get/set chorus value");
 }
 
 void fluidmax_set_gain(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
@@ -902,12 +959,12 @@ void fluidmax_mute(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     x->mute = mute;
 }
 
-void fluidmax_unmute(t_object* o)
+void fluidmax_unmute(t_fluidmax* x)
 {
     t_atom a;
 
     atom_setlong(&a, 0);
-    fluidmax_mute(o, NULL, 1, &a);
+    fluidmax_mute(x, NULL, 1, &a);
 }
 
 /*
@@ -1176,33 +1233,36 @@ void fluidmax_print(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 
                 post("gain: %g", gain);
             } else if (sym == gensym("reverb")) {
-                double level = fluid_synth_get_reverb_level(x->synth);
-                double room = fluid_synth_get_reverb_roomsize(x->synth);
-                double damping = fluid_synth_get_reverb_damp(x->synth);
-                double width = fluid_synth_get_reverb_width(x->synth);
+                double level, roomsize, damping, width;
+                fluid_synth_get_reverb_group_roomsize(x->synth, -1, &roomsize);
+                fluid_synth_get_reverb_group_damp(x->synth, -1, &damping);
+                fluid_synth_get_reverb_group_level(x->synth, -1, &level);
+                fluid_synth_get_reverb_group_width(x->synth, -1, &width);
 
                 if (x->reverb != 0) {
                     post("fluidsynth~ current reverb parameters:");
                     post("  level: %f", level);
-                    post("  room size: %f", room);
+                    post("  room size: %f", roomsize);
                     post("  damping: %f", damping);
                     post("  width: %f", width);
                 } else
                     post("fluidsynth~: reverb off");
             } else if (sym == gensym("chorus")) {
                 if (x->chorus != 0) {
-                    // double level = fluid_synth_get_chorus_level(x->synth);
-                    // double speed = fluid_synth_get_chorus_speed_Hz(x->synth);
-                    // double depth = fluid_synth_get_chorus_depth_ms(x->synth);
-                    // int type = fluid_synth_get_chorus_type(x->synth);
-                    // int nr = fluid_synth_get_chorus_nr(x->synth);
+                    double level, speed, depth;
+                    int type, nr;
+                    fluid_synth_get_chorus_group_speed(x->synth, -1, &speed);
+                    fluid_synth_get_chorus_group_level(x->synth, -1, &level);
+                    fluid_synth_get_chorus_group_depth(x->synth, -1, &depth);
+                    fluid_synth_get_chorus_group_nr(x->synth, -1, &nr);
+                    fluid_synth_get_chorus_group_type(x->synth, -1, &type);
 
-                    // post("fluidsynth~ current chorus parameters:");
-                    // post("  level: %f", level);
-                    // post("  speed: %f Hz", speed);
-                    // post("  depth: %f msec", depth);
-                    // post("  type: %d (%s)", type, type ? "triangle" : "sine");
-                    // post("  %d units", nr);
+                    post("fluidsynth~ current chorus parameters:");
+                    post("  level: %f", level);
+                    post("  speed: %f Hz", speed);
+                    post("  depth: %f msec", depth);
+                    post("  type: %d (%s)", type, type ? "triangle" : "sine");
+                    post("  %d units", nr);
                 } else
                     post("fluidsynth~: chorus off");
             }
@@ -1352,14 +1412,20 @@ void fluidmax_info(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                 outlet_anything(x->outlet, gensym("channel"), 1, &a);
             } else if (sym == gensym("reverb")) {
                 if (x->reverb != 0) {
-                    double level = fluid_synth_get_reverb_level(x->synth);
-                    double room = fluid_synth_get_reverb_roomsize(x->synth);
-                    double damping = fluid_synth_get_reverb_damp(x->synth);
-                    double width = fluid_synth_get_reverb_width(x->synth);
+                    double level, roomsize, damping, width;
+                    fluid_synth_get_reverb_group_roomsize(x->synth, -1, &roomsize);
+                    fluid_synth_get_reverb_group_damp(x->synth, -1, &damping);
+                    fluid_synth_get_reverb_group_level(x->synth, -1, &level);
+                    fluid_synth_get_reverb_group_width(x->synth, -1, &width);
+
+                    // double level = fluid_synth_get_reverb_level(x->synth);
+                    // double room = fluid_synth_get_reverb_roomsize(x->synth);
+                    // double damping = fluid_synth_get_reverb_damp(x->synth);
+                    // double width = fluid_synth_get_reverb_width(x->synth);
                     t_atom a[4];
 
                     atom_setfloat(a, level);
-                    atom_setfloat(a + 1, room);
+                    atom_setfloat(a + 1, roomsize);
                     atom_setfloat(a + 2, damping);
                     atom_setfloat(a + 3, width);
                     outlet_anything(x->outlet, gensym("reverb"), 4, a);
@@ -1371,19 +1437,22 @@ void fluidmax_info(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                 }
             } else if (sym == gensym("chorus")) {
                 if (x->chorus != 0) {
-                //     double level = fluid_synth_get_chorus_level(x->synth);
-                //     double speed = fluid_synth_get_chorus_speed_Hz(x->synth);
-                //     double depth = fluid_synth_get_chorus_depth_ms(x->synth);
-                //     int type = fluid_synth_get_chorus_type(x->synth);
-                //     int nr = fluid_synth_get_chorus_nr(x->synth);
-                //     t_atom a[5];
+                    double level, speed, depth;
+                    int type, nr;
+                    fluid_synth_get_chorus_group_speed(x->synth, -1, &speed);
+                    fluid_synth_get_chorus_group_level(x->synth, -1, &level);
+                    fluid_synth_get_chorus_group_depth(x->synth, -1, &depth);
+                    fluid_synth_get_chorus_group_nr(x->synth, -1, &nr);
+                    fluid_synth_get_chorus_group_type(x->synth, -1, &type);
 
-                //     atom_setfloat(a, level);
-                //     atom_setfloat(a + 1, speed);
-                //     atom_setfloat(a + 2, depth);
-                //     atom_setlong(a + 3, type);
-                //     atom_setlong(a + 4, nr);
-                //     outlet_anything(x->outlet, gensym("chorus"), 5, a);
+                    t_atom a[5];
+
+                    atom_setfloat(a, level);
+                    atom_setfloat(a + 1, speed);
+                    atom_setfloat(a + 2, depth);
+                    atom_setlong(a + 3, type);
+                    atom_setlong(a + 4, nr);
+                    outlet_anything(x->outlet, gensym("chorus"), 5, a);
                 } else {
                     t_atom a;
 
