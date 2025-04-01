@@ -959,7 +959,7 @@ void fsm_print_soundfonts(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     if (n > 0) {
         fsm_post(x, "fluidsynth~ soundfonts:");
     } else {
-        fsm_error(x, "fluidsynth~: no soundfonts loaded");
+        fsm_error(x, "no soundfonts loaded");
         return;
     }
 
@@ -1042,7 +1042,7 @@ void fsm_print_presets(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
             }
         }
     } else
-        fsm_error(x, "fluidsynth~: no soundfonts loaded");
+        fsm_error(x, "no soundfonts loaded");
 }
 
 void fsm_print_channels(t_fsm* x, t_symbol* s, short argc,
@@ -1127,7 +1127,7 @@ void fsm_print_reverb(t_fsm* x, t_symbol* s, short argc,
         fsm_post(x, "  damping: %f", r.damping);
         fsm_post(x, "  width: %f", r.width);
     } else {
-        fsm_post(x, "fluidsynth~: reverb off");
+        fsm_post(x, "reverb off");
     }
 }
 
@@ -1151,7 +1151,7 @@ void fsm_print_chorus(t_fsm* x, t_symbol* s, short argc,
         fsm_post(x, "  type: %d (%s)", c.type, c.type ? "triangle" : "sine");
         fsm_post(x, "  %d units", c.nr);
     } else {
-        fsm_post(x, "fluidsynth~: chorus off");
+        fsm_post(x, "chorus off");
     }
 }
 
@@ -1440,6 +1440,7 @@ void* fsm_new(t_symbol* s, long argc, t_atom* argv)
         fluid_settings_setint(x->settings, "synth.polyphony", polyphony);
         fluid_settings_setnum(x->settings, "synth.gain", 0.600000);
         fluid_settings_setnum(x->settings, "synth.sample-rate", sys_getsr());
+        fluid_settings_setstr(x->settings, "synth.default-soundfont", "/usr/local/share/sounds/sf2/FluidR3_GM.sf2");
 
         x->synth = new_fluid_synth(x->settings);
 
@@ -1456,18 +1457,18 @@ void* fsm_new(t_symbol* s, long argc, t_atom* argv)
         delete_fluid_settings(x->settings);
     }
 
-    fsm_error(x, "fluidsynth~: cannot create FluidSynth core");
+    fsm_error(x, "cannot create FluidSynth core");
 
     return NULL;
 }
 
 void fsm_free(t_fsm* x)
 {
-    if (x->settings != NULL)
-        delete_fluid_settings(x->settings);
-
     if (x->synth != NULL)
         delete_fluid_synth(x->synth);
+
+    if (x->settings != NULL)
+        delete_fluid_settings(x->settings);
 
     dsp_free((t_pxobject*)x);
 }
