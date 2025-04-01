@@ -1,8 +1,8 @@
-#include "fluidmax_tilde.h"
-#include "fluidmax_gen.h"
+#include "fluidsynth_tilde.h"
+#include "fluidsynth_tilde_gen.h"
 
 
-struct t_fluidmax {
+struct t_fsm {
     t_pxobject obj;
 
     fluid_synth_t* synth;
@@ -36,13 +36,13 @@ typedef struct {
 /*----------------------------------------------------------------------------*/
 // dsp
 
-void fluidmax_dsp64(t_fluidmax* x, t_object* dsp64, short* count,
+void fsm_dsp64(t_fsm* x, t_object* dsp64, short* count,
                     double samplerate, long maxvectorsize, long flags)
 {
-    object_method(dsp64, gensym("dsp_add64"), x, fluidmax_perform64, 0, NULL);
+    object_method(dsp64, gensym("dsp_add64"), x, fsm_perform64, 0, NULL);
 }
 
-void fluidmax_perform64(t_fluidmax* x, t_object* dsp64, double** ins,
+void fsm_perform64(t_fsm* x, t_object* dsp64, double** ins,
                         long numins, double** outs, long numouts,
                         long sampleframes, long flags, void* userparam)
 {
@@ -101,7 +101,7 @@ double get_number_as_float(t_atom* a)
 /*----------------------------------------------------------------------------*/
 // load utilities
 
-char* fluidmax_translate_fullpath(char* maxpath, char* fullpath)
+char* fsm_translate_fullpath(char* maxpath, char* fullpath)
 {
     int i;
 
@@ -118,7 +118,7 @@ char* fluidmax_translate_fullpath(char* maxpath, char* fullpath)
     return fullpath;
 }
 
-t_symbol* fluidmax_get_stripped_name(const char* fullpath)
+t_symbol* fsm_get_stripped_name(const char* fullpath)
 {
     char stripped[MAX_PATH_CHARS];
     int i;
@@ -146,31 +146,31 @@ t_symbol* fluidmax_get_stripped_name(const char* fullpath)
     return gensym(stripped);
 }
 
-t_symbol* fluidmax_sfont_get_name(fluid_sfont_t* sfont)
+t_symbol* fsm_sfont_get_name(fluid_sfont_t* sfont)
 {
-    return fluidmax_get_stripped_name(fluid_sfont_get_name(sfont));
+    return fsm_get_stripped_name(fluid_sfont_get_name(sfont));
 }
 
-fluid_sfont_t* fluidmax_sfont_get_by_name(t_fluidmax* x, t_symbol* name)
+fluid_sfont_t* fsm_sfont_get_by_name(t_fsm* x, t_symbol* name)
 {
     int n = fluid_synth_sfcount(x->synth);
 
     for (int i = 0; i < n; i++) {
         fluid_sfont_t* sfont = fluid_synth_get_sfont(x->synth, i);
 
-        if (fluidmax_sfont_get_name(sfont) == name)
+        if (fsm_sfont_get_name(sfont) == name)
             return sfont;
     }
 
     return NULL;
 }
 
-void fluidmax_do_load(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_do_load(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0 && is_symbol(argv)) {
         const char* filename = atom_getsym(argv)->s_name;
-        t_symbol* name = fluidmax_get_stripped_name(filename);
-        fluid_sfont_t* sf = fluidmax_sfont_get_by_name(x, name);
+        t_symbol* name = fsm_get_stripped_name(filename);
+        fluid_sfont_t* sf = fsm_sfont_get_by_name(x, name);
 
         if (sf == NULL) {
             int id = fluid_synth_sfload(x->synth, filename, 0);
@@ -193,7 +193,7 @@ void fluidmax_do_load(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_load_with_dialog(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_load_with_dialog(t_fsm* x, t_symbol* s, short argc,
                                t_atom* argv)
 {
     char filename[MAX_FILENAME_CHARS];
@@ -210,25 +210,25 @@ void fluidmax_load_with_dialog(t_fluidmax* x, t_symbol* s, short argc,
     if (path_topotentialname(path, filename, maxpath, 0) == 0) {
         t_atom a;
 
-        atom_setsym(&a, gensym(fluidmax_translate_fullpath(maxpath, fullpath)));
-        fluidmax_do_load(x, NULL, 1, &a);
+        atom_setsym(&a, gensym(fsm_translate_fullpath(maxpath, fullpath)));
+        fsm_do_load(x, NULL, 1, &a);
     }
 }
 
 /*----------------------------------------------------------------------------*/
 // user methods
 
-void fluidmax_load(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_load(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc == 0)
-        defer(x, (method)fluidmax_load_with_dialog, NULL, 0, 0);
+        defer(x, (method)fsm_load_with_dialog, NULL, 0, 0);
     else {
         if (is_symbol(argv)) {
             t_symbol* name = atom_getsym(argv);
             char* string = (char*)name->s_name;
 
             if (string[0] == '/')
-                defer(x, (method)fluidmax_do_load, NULL, argc, argv);
+                defer(x, (method)fsm_do_load, NULL, argc, argv);
             else {
                 char maxpath[MAX_PATH_CHARS];
                 char fullpath[MAX_PATH_CHARS];
@@ -244,14 +244,14 @@ void fluidmax_load(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 
                 atom_setsym(
                     &a,
-                    gensym(fluidmax_translate_fullpath(maxpath, fullpath)));
-                defer(x, (method)fluidmax_do_load, NULL, 1, &a);
+                    gensym(fsm_translate_fullpath(maxpath, fullpath)));
+                defer(x, (method)fsm_do_load, NULL, 1, &a);
             }
         }
     }
 }
 
-void fluidmax_unload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_unload(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0) {
         if (is_number(argv)) {
@@ -259,7 +259,7 @@ void fluidmax_unload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
             fluid_sfont_t* sf = fluid_synth_get_sfont_by_id(x->synth, id);
 
             if (sf != NULL) {
-                t_symbol* name = fluidmax_sfont_get_name(sf);
+                t_symbol* name = fsm_sfont_get_name(sf);
 
                 if (fluid_synth_sfunload(x->synth, id, 0) >= 0) {
                     post("fluidsynth~: unloaded soundfont '%s' (id %d)",
@@ -278,7 +278,7 @@ void fluidmax_unload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                 fluid_synth_system_reset(x->synth);
 
                 while (sf != NULL) {
-                    t_symbol* name = fluidmax_sfont_get_name(sf);
+                    t_symbol* name = fsm_sfont_get_name(sf);
                     unsigned int id = fluid_sfont_get_id(sf);
 
                     if (fluid_synth_sfunload(x->synth, id, 0) >= 0)
@@ -292,7 +292,7 @@ void fluidmax_unload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                     sf = fluid_synth_get_sfont(x->synth, 0);
                 }
             } else {
-                fluid_sfont_t* sf = fluidmax_sfont_get_by_name(x, sym);
+                fluid_sfont_t* sf = fsm_sfont_get_by_name(x, sym);
 
                 if (sf != NULL) {
                     unsigned int id = fluid_sfont_get_id(sf);
@@ -311,7 +311,7 @@ void fluidmax_unload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_reload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_reload(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0) {
         if (is_number(argv)) {
@@ -337,7 +337,7 @@ void fluidmax_reload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 
                 for (i = 0; i < n; i++) {
                     fluid_sfont_t* sf = fluid_synth_get_sfont(x->synth, i);
-                    t_symbol* name = fluidmax_sfont_get_name(sf);
+                    t_symbol* name = fsm_sfont_get_name(sf);
                     unsigned int id = fluid_sfont_get_id(sf);
 
 
@@ -350,7 +350,7 @@ void fluidmax_reload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                               name->s_name, id);
                 }
             } else {
-                fluid_sfont_t* sf = fluidmax_sfont_get_by_name(x, sym);
+                fluid_sfont_t* sf = fsm_sfont_get_by_name(x, sym);
 
                 if (sf != NULL) {
                     unsigned int id = fluid_sfont_get_id(sf);
@@ -369,7 +369,7 @@ void fluidmax_reload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_note(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_note(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0 && is_number(argv)) {
         int velocity = 64;
@@ -398,13 +398,13 @@ void fluidmax_note(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_list(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_list(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
-    fluidmax_note(x, NULL, argc, argv);
+    fsm_note(x, NULL, argc, argv);
 }
 
 
-void fluidmax_control_change(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_control_change(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
 
     if (argc > 0 && is_number(argv)) {
@@ -434,7 +434,7 @@ void fluidmax_control_change(t_fluidmax* x, t_symbol* s, short argc, t_atom* arg
     }
 }
 
-void fluidmax_mod(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_mod(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
 
     if (argc > 1 && is_number(argv) && is_number(argv + 1)) {
@@ -455,7 +455,7 @@ void fluidmax_mod(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_pitch_bend(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_pitch_bend(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0 && is_number(argv)) {
         int channel = 1;
@@ -481,7 +481,7 @@ void fluidmax_pitch_bend(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_pitch_bend_wheel(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_pitch_bend_wheel(t_fsm* x, t_symbol* s, short argc,
                                t_atom* argv)
 {
     if (argc > 0 && is_number(argv)) {
@@ -495,7 +495,7 @@ void fluidmax_pitch_bend_wheel(t_fluidmax* x, t_symbol* s, short argc,
     }
 }
 
-void fluidmax_program_change(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_program_change(t_fsm* x, t_symbol* s, short argc,
                              t_atom* argv)
 {
     if (argc > 0 && is_number(argv)) {
@@ -515,7 +515,7 @@ void fluidmax_program_change(t_fluidmax* x, t_symbol* s, short argc,
     }
 }
 
-void fluidmax_bank_select(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_bank_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0 && is_number(argv)) {
         int channel = 1;
@@ -540,7 +540,7 @@ void fluidmax_bank_select(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_select(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     unsigned int bank = 0;
     unsigned int preset = 0;
@@ -571,7 +571,7 @@ void fluidmax_select(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                                        get_number_as_long(argv), bank, preset);
         else if (is_symbol(argv)) {
             t_symbol* name = atom_getsym(argv);
-            fluid_sfont_t* sf = fluidmax_sfont_get_by_name(x, name);
+            fluid_sfont_t* sf = fsm_sfont_get_by_name(x, name);
 
             if (sf != NULL)
                 fluid_synth_program_select(x->synth, channel - 1,
@@ -586,7 +586,7 @@ void fluidmax_select(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_reverb(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_reverb(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int res;
     t_fx_reverb r;
@@ -686,7 +686,7 @@ exception:
 }
 
 
-void fluidmax_chorus(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_chorus(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int res;
     t_fx_chorus c;
@@ -801,7 +801,7 @@ exception:
     object_error((t_object*)x, "could not get/set chorus value");
 }
 
-void fluidmax_set_gain(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_set_gain(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
 
     if (argc > 0 && is_number(argv)) {
@@ -811,7 +811,7 @@ void fluidmax_set_gain(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_set_resampling_method(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_set_resampling_method(t_fsm* x, t_symbol* s, short argc,
                                     t_atom* argv)
 {
 
@@ -851,12 +851,12 @@ void fluidmax_set_resampling_method(t_fluidmax* x, t_symbol* s, short argc,
     }
 }
 
-void fluidmax_panic(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_panic(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     fluid_synth_system_reset(x->synth);
 }
 
-void fluidmax_reset(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_reset(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     // fluid_synth_system_reset(x->synth);
 
@@ -868,7 +868,7 @@ void fluidmax_reset(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_mute(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_mute(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int mute = 1;
 
@@ -880,12 +880,12 @@ void fluidmax_mute(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     x->mute = mute;
 }
 
-void fluidmax_unmute(t_fluidmax* x)
+void fsm_unmute(t_fsm* x)
 {
     t_atom a;
 
     atom_setlong(&a, 0);
-    fluidmax_mute(x, NULL, 1, &a);
+    fsm_mute(x, NULL, 1, &a);
 }
 
 /*
@@ -894,7 +894,7 @@ int fluid_synth_count_audio_groups (fluid_synth_t *synth)
 int fluid_synth_count_effects_channels (fluid_synth_t *synth)
 */
 
-void fluidmax_tuning_octave(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_tuning_octave(t_fsm* x, t_symbol* s, short argc,
                             t_atom* argv)
 {
     t_symbol* name;
@@ -933,7 +933,7 @@ void fluidmax_tuning_octave(t_fluidmax* x, t_symbol* s, short argc,
     //                                  name->s_name, pitch);
 }
 
-void fluidmax_tuning_select(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_tuning_select(t_fsm* x, t_symbol* s, short argc,
                             t_atom* argv)
 {
     int tuning_bank = 0;
@@ -958,7 +958,7 @@ void fluidmax_tuning_select(t_fluidmax* x, t_symbol* s, short argc,
     // tuning_prog);
 }
 
-void fluidmax_tuning_reset(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_tuning_reset(t_fsm* x, t_symbol* s, short argc,
                            t_atom* argv)
 {
     int channel = 0;
@@ -985,9 +985,9 @@ fluid_synth_tuning_dump (fluid_synth_t *synth, int bank, int prog, char *name,
 int len, double *pitch)
 */
 
-void fluidmax_version(t_fluidmax* x)
+void fsm_version(t_fsm* x)
 {
-    post("fluidsynth~, version %s (based on FluidSynth %s)", FLUIDMAX_VERSION,
+    post("fluidsynth~, version %s (based on FluidSynth %s)", FSM_VERSION,
          FLUIDSYNTH_VERSION);
     post("  FluidSynth is written by Peter Hanappe et al. (see "
          "fluidsynth.org)");
@@ -999,7 +999,7 @@ void fluidmax_version(t_fluidmax* x)
 
 
 
-void fluidmax_print_soundfonts(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_print_soundfonts(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
     int i;
@@ -1011,14 +1011,14 @@ void fluidmax_print_soundfonts(t_fluidmax* x, t_symbol* s, short argc, t_atom* a
 
     for (i = 0; i < n; i++) {
         fluid_sfont_t* sf = fluid_synth_get_sfont(x->synth, i);
-        t_symbol* name = fluidmax_sfont_get_name(sf);
+        t_symbol* name = fsm_sfont_get_name(sf);
         unsigned int id = fluid_sfont_get_id(sf);
 
         post("  %d: '%s' (id %d)", i, name->s_name, id);
     }
 }
 
-void fluidmax_print_presets(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_print_presets(t_fsm* x, t_symbol* s, short argc,
                             t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
@@ -1030,12 +1030,12 @@ void fluidmax_print_presets(t_fluidmax* x, t_symbol* s, short argc,
 
             if (is_symbol(argv + 1)) {
                 name = atom_getsym(argv + 1);
-                sf = fluidmax_sfont_get_by_name(x, name);
+                sf = fsm_sfont_get_by_name(x, name);
             } else if (is_long(argv + 1)) {
                 int id = (int)atom_getlong(argv + 1);
 
                 sf = fluid_synth_get_sfont_by_id(x->synth, id);
-                name = fluidmax_sfont_get_name(sf);
+                name = fsm_sfont_get_name(sf);
             }
 
             if (sf != NULL) {
@@ -1077,7 +1077,7 @@ void fluidmax_print_presets(t_fluidmax* x, t_symbol* s, short argc,
                     }
 
                     if (preset != NULL) {
-                        t_symbol* sf_name = fluidmax_sfont_get_name(sf);
+                        t_symbol* sf_name = fsm_sfont_get_name(sf);
                         const char* preset_str = fluid_preset_get_name(preset);
                         t_symbol* preset_name = gensym(preset_str);
 
@@ -1092,7 +1092,7 @@ void fluidmax_print_presets(t_fluidmax* x, t_symbol* s, short argc,
         error("fluidsynth~: no soundfonts loaded");
 }
 
-void fluidmax_print_channels(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_print_channels(t_fsm* x, t_symbol* s, short argc,
                              t_atom* argv)
 {
     int n = fluid_synth_count_midi_channels(x->synth);
@@ -1115,14 +1115,14 @@ void fluidmax_print_channels(t_fluidmax* x, t_symbol* s, short argc,
             sf = fluid_synth_get_sfont_by_id(x->synth, sf_id);
 
             post("  %d: soundfont '%s', bank %d, program %d: '%s'", i + 1,
-                 fluidmax_sfont_get_name(sf)->s_name, bank_num, prog_num,
+                 fsm_sfont_get_name(sf)->s_name, bank_num, prog_num,
                  preset_name->s_name);
         } else
             post("  channel %d: no preset", i + 1);
     }
 }
 
-void fluidmax_print_generators(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_print_generators(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int channel = 1;
     int n = GEN_LAST;
@@ -1139,8 +1139,8 @@ void fluidmax_print_generators(t_fluidmax* x, t_symbol* s, short argc, t_atom* a
     post("fluidsynth~ generators of channel %d:", channel);
 
     for (i = 0; i < n; i++) {
-        const char* name = fluidmax_gen_info[i].name;
-        const char* unit = fluidmax_gen_info[i].unit;
+        const char* name = fsm_gen_info[i].name;
+        const char* unit = fsm_gen_info[i].unit;
         double incr = fluid_synth_get_gen(x->synth, channel - 1, i);
         double min = fluid_gen_info[i].min;
         double max = fluid_gen_info[i].max;
@@ -1150,13 +1150,13 @@ void fluidmax_print_generators(t_fluidmax* x, t_symbol* s, short argc, t_atom* a
     }
 }
 
-void fluidmax_print_gain(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_print_gain(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     double gain = fluid_synth_get_gain(x->synth);
     post("gain: %g", gain);
 }
 
-void fluidmax_print_reverb(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_print_reverb(t_fsm* x, t_symbol* s, short argc,
                            t_atom* argv)
 {
     t_fx_reverb r;
@@ -1178,7 +1178,7 @@ void fluidmax_print_reverb(t_fluidmax* x, t_symbol* s, short argc,
     }
 }
 
-void fluidmax_print_chorus(t_fluidmax* x, t_symbol* s, short argc,
+void fsm_print_chorus(t_fsm* x, t_symbol* s, short argc,
                            t_atom* argv)
 {
     t_fx_chorus c;
@@ -1202,31 +1202,31 @@ void fluidmax_print_chorus(t_fluidmax* x, t_symbol* s, short argc,
     }
 }
 
-void fluidmax_print(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fsm_print(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0) {
         if (is_symbol(argv)) {
             t_symbol* sym = atom_getsym(argv);
             if (sym == gensym("soundfonts")) {
-                fluidmax_print_soundfonts(x, s, argc, argv);
+                fsm_print_soundfonts(x, s, argc, argv);
             } else if (sym == gensym("presets")) {
-                fluidmax_print_presets(x, s, argc, argv);
+                fsm_print_presets(x, s, argc, argv);
             } else if (sym == gensym("channels")) {
-                fluidmax_print_channels(x, s, argc, argv);
+                fsm_print_channels(x, s, argc, argv);
             } else if (sym == gensym("generators")) {
-                fluidmax_print_generators(x, s, argc, argv);
+                fsm_print_generators(x, s, argc, argv);
             } else if (sym == gensym("gain")) {
-                fluidmax_print_gain(x, s, argc, argv);
+                fsm_print_gain(x, s, argc, argv);
             } else if (sym == gensym("reverb")) {
-                fluidmax_print_reverb(x, s, argc, argv);
+                fsm_print_reverb(x, s, argc, argv);
             } else if (sym == gensym("chorus")) {
-                fluidmax_print_chorus(x, s, argc, argv);
+                fsm_print_chorus(x, s, argc, argv);
             }
         }
     }
 }
 
-void fluidmax_info_soundfonts(t_fluidmax* x, t_symbol* s, long argc,
+void fsm_info_soundfonts(t_fsm* x, t_symbol* s, long argc,
                               t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
@@ -1238,13 +1238,13 @@ void fluidmax_info_soundfonts(t_fluidmax* x, t_symbol* s, long argc,
         t_atom a[2];
 
         atom_setlong(a, i);
-        atom_setsym(a + 1, fluidmax_sfont_get_name(sf));
+        atom_setsym(a + 1, fsm_sfont_get_name(sf));
         atom_setlong(a + 2, id);
         outlet_anything(x->outlet, gensym("soundfont"), 3, a);
     }
 }
 
-void fluidmax_info_presets(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
+void fsm_info_presets(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
     if (n <= 0) {
@@ -1258,11 +1258,11 @@ void fluidmax_info_presets(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
 
         if (is_symbol(argv + 1)) {
             sf_name = atom_getsym(argv + 1);
-            sf = fluidmax_sfont_get_by_name(x, sf_name);
+            sf = fsm_sfont_get_by_name(x, sf_name);
         } else if (is_long(argv + 1)) {
             int id = (int)atom_getlong(argv + 1);
             sf = fluid_synth_get_sfont_by_id(x->synth, id);
-            sf_name = fluidmax_sfont_get_name(sf);
+            sf_name = fsm_sfont_get_name(sf);
         }
 
         if (sf != NULL) {
@@ -1301,7 +1301,7 @@ void fluidmax_info_presets(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
                 }
 
                 if (preset != NULL) {
-                    t_symbol* sf_name = fluidmax_sfont_get_name(sf);
+                    t_symbol* sf_name = fsm_sfont_get_name(sf);
                     const char* preset_str = fluid_preset_get_name(preset);
                     t_symbol* preset_name = gensym(preset_str);
                     t_atom a[4];
@@ -1317,7 +1317,7 @@ void fluidmax_info_presets(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
     }
 }
 
-void fluidmax_info_channels(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
+void fsm_info_channels(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
     int n = fluid_synth_count_midi_channels(x->synth);
 
@@ -1336,7 +1336,7 @@ void fluidmax_info_channels(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
             sf = fluid_synth_get_sfont_by_id(x->synth, sf_id);
 
             atom_setlong(a, i + 1);
-            atom_setsym(a + 1, fluidmax_sfont_get_name(sf));
+            atom_setsym(a + 1, fsm_sfont_get_name(sf));
             atom_setlong(a + 2, bank_num);
             atom_setlong(a + 3, prog_num);
             atom_setsym(a + 4, preset_name);
@@ -1351,7 +1351,7 @@ void fluidmax_info_channels(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
     }
 }
 
-void fluidmax_info_gain(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
+void fsm_info_gain(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
     t_atom a;
     double gain = fluid_synth_get_gain(x->synth);
@@ -1360,7 +1360,7 @@ void fluidmax_info_gain(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
     outlet_anything(x->outlet, gensym("channel"), 1, &a);
 }
 
-void fluidmax_info_reverb(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
+void fsm_info_reverb(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
     t_fx_reverb r;
     r.fx_group = -1;
@@ -1385,7 +1385,7 @@ void fluidmax_info_reverb(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
     }
 }
 
-void fluidmax_info_chorus(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
+void fsm_info_chorus(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
     t_fx_chorus c;
     c.fx_group = -1;
@@ -1412,7 +1412,7 @@ void fluidmax_info_chorus(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
     }
 }
 
-void fluidmax_info_polyphony(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
+void fsm_info_polyphony(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
     int polyphony = fluid_synth_get_polyphony(x->synth);
     t_atom a;
@@ -1421,25 +1421,25 @@ void fluidmax_info_polyphony(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv
     outlet_anything(x->outlet, gensym("polyphony"), 1, &a);
 }
 
-void fluidmax_info(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
+void fsm_info(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
     if (argc > 0) {
         if (is_symbol(argv)) {
             t_symbol* sym = atom_getsym(argv);
             if (sym == gensym("soundfonts")) {
-                fluidmax_info_soundfonts(x, s, argc, argv);
+                fsm_info_soundfonts(x, s, argc, argv);
             } else if (sym == gensym("presets")) {
-                fluidmax_info_presets(x, s, argc, argv);
+                fsm_info_presets(x, s, argc, argv);
             } else if (sym == gensym("channels")) {
-                fluidmax_info_channels(x, s, argc, argv);
+                fsm_info_channels(x, s, argc, argv);
             } else if (sym == gensym("gain")) {
-                fluidmax_info_gain(x, s, argc, argv);
+                fsm_info_gain(x, s, argc, argv);
             } else if (sym == gensym("reverb")) {
-                fluidmax_info_reverb(x, s, argc, argv);
+                fsm_info_reverb(x, s, argc, argv);
             } else if (sym == gensym("chorus")) {
-                fluidmax_info_chorus(x, s, argc, argv);
+                fsm_info_chorus(x, s, argc, argv);
             } else if (sym == gensym("polyphony")) {
-                fluidmax_info_polyphony(x, s, argc, argv);
+                fsm_info_polyphony(x, s, argc, argv);
             }
         }
     }
@@ -1448,9 +1448,9 @@ void fluidmax_info(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
 /*----------------------------------------------------------------------------*/
 // class
 
-void* fluidmax_new(t_symbol* s, long argc, t_atom* argv)
+void* fsm_new(t_symbol* s, long argc, t_atom* argv)
 {
-    t_fluidmax* x = (t_fluidmax*)object_alloc(fluidmax_class);
+    t_fsm* x = (t_fsm*)object_alloc(fsm_class);
     int polyphony = 256;
     int midi_channels = 16;
 
@@ -1479,7 +1479,7 @@ void* fluidmax_new(t_symbol* s, long argc, t_atom* argv)
     }
 
     if (argc > 0 && is_symbol(argv)) {
-        fluidmax_load(x, NULL, 1, argv);
+        fsm_load(x, NULL, 1, argv);
     }
 
     if (x->settings != NULL) {
@@ -1495,7 +1495,7 @@ void* fluidmax_new(t_symbol* s, long argc, t_atom* argv)
             fluid_synth_chorus_on(x->synth, -1, 0);
 
             if (argc > 0 && is_symbol(argv))
-                fluidmax_load(x, NULL, argc, argv);
+                fsm_load(x, NULL, argc, argv);
 
             return x;
         }
@@ -1508,7 +1508,7 @@ void* fluidmax_new(t_symbol* s, long argc, t_atom* argv)
     return NULL;
 }
 
-void fluidmax_free(t_fluidmax* x)
+void fsm_free(t_fsm* x)
 {
     if (x->settings != NULL)
         delete_fluid_settings(x->settings);
@@ -1522,52 +1522,52 @@ void fluidmax_free(t_fluidmax* x)
 // clang-format off
 void ext_main(void* r)
 {
-    t_class* c = class_new("fluidmax~", 
-        (method)fluidmax_new, 
-        (method)fluidmax_free, 
-        (long)sizeof(t_fluidmax), 0L, A_GIMME, 0);
+    t_class* c = class_new("fluidsynth~", 
+        (method)fsm_new, 
+        (method)fsm_free, 
+        (long)sizeof(t_fsm), 0L, A_GIMME, 0);
 
-    class_addmethod(c, (method)fluidmax_dsp64, "dsp64", A_CANT, 0);
-    // class_addmethod(c, (method)fluidmax_assist, "assist", A_CANT, 0);
+    class_addmethod(c, (method)fsm_dsp64, "dsp64", A_CANT, 0);
+    // class_addmethod(c, (method)fsm_assist, "assist", A_CANT, 0);
 
-    class_addmethod(c, (method)fluidmax_version, "version", 0);
-    class_addmethod(c, (method)fluidmax_print, "print", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_version, "version", 0);
+    class_addmethod(c, (method)fsm_print, "print", A_GIMME, 0);
 
-    class_addmethod(c, (method)fluidmax_load, "load", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_unload, "unload", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_reload, "reload", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_info, "info", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_load, "load", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_unload, "unload", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_reload, "reload", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_info, "info", A_GIMME, 0);
 
-    class_addmethod(c, (method)fluidmax_panic, "panic", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_reset, "reset", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_mute, "mute", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_unmute, "unmute", 0);
+    class_addmethod(c, (method)fsm_panic, "panic", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_reset, "reset", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_mute, "mute", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_unmute, "unmute", 0);
 
-    /*class_addmethod(c, (method)fluidmax_tuning_keys, "tuning-keys", A_GIMME, 0);*/
-    class_addmethod(c, (method)fluidmax_tuning_octave, "tuning-octave", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_tuning_select, "tuning-select", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_tuning_reset, "tuning-reset", A_GIMME, 0);
+    /*class_addmethod(c, (method)fsm_tuning_keys, "tuning-keys", A_GIMME, 0);*/
+    class_addmethod(c, (method)fsm_tuning_octave, "tuning-octave", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_tuning_select, "tuning-select", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_tuning_reset, "tuning-reset", A_GIMME, 0);
 
-    class_addmethod(c, (method)fluidmax_reverb, "reverb", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_chorus, "chorus", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_set_gain, "gain", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_set_resampling_method, "resample", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_reverb, "reverb", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_chorus, "chorus", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_set_gain, "gain", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_set_resampling_method, "resample", A_GIMME, 0);
 
-    class_addmethod(c, (method)fluidmax_note, "note", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_list, "list", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_note, "note", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_list, "list", A_GIMME, 0);
 
-    class_addmethod(c, (method)fluidmax_control_change, "control", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_mod, "mod", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_control_change, "control", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_mod, "mod", A_GIMME, 0);
 
-    class_addmethod(c, (method)fluidmax_pitch_bend, "bend", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_pitch_bend_wheel, "wheel", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_pitch_bend, "bend", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_pitch_bend_wheel, "wheel", A_GIMME, 0);
 
-    class_addmethod(c, (method)fluidmax_program_change, "program", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_bank_select, "bank", A_GIMME, 0);
-    class_addmethod(c, (method)fluidmax_select, "select", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_program_change, "program", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_bank_select, "bank", A_GIMME, 0);
+    class_addmethod(c, (method)fsm_select, "select", A_GIMME, 0);
 
     class_dspinit(c);
     class_register(CLASS_BOX, c);
-    fluidmax_class = c;
+    fsm_class = c;
 }
 // clang-format on

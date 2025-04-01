@@ -12,9 +12,18 @@ DMG=$(PACKAGE_NAME)-$(VERSION)-$(ARCH).dmg
 ENTITLEMENTS = source/scripts/entitlements.plist
 VERSION=0.1.0
 
-.PHONY: all build universal setup clean reset
+.PHONY: all build universal bundle setup clean reset
 
 all: build
+
+install_sf2:
+	@./source/scripts/download_sf2.sh
+
+bundle: reset build install_sf2
+	@mkdir -p build && \
+		g++ -O3 -o build/bundler source/scripts/bundler.cpp && \
+		build/bundler -od -b -x ./externals/fluidsynth~.mxo/Contents/MacOS/fluidsynth~ -d ./externals/fluidsynth~.mxo/Contents/Resources/libs/
+
 
 build:
 	@mkdir -p build && \

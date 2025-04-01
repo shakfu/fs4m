@@ -1,5 +1,5 @@
-#ifndef FLUIDMAX_GEN_H
-#define FLUIDMAX_GEN_H
+#ifndef FSM_GEN_H
+#define FSM_GEN_H
 
 // clang-format off
 /*----------------------------------------------------------------------------*/
@@ -9,10 +9,10 @@ typedef struct {
     int index;
     const char* name;
     const char* unit;
-} fluidmax_gen_descr_t;
+} fsm_gen_descr_t;
 
 
-static fluidmax_gen_descr_t fluidmax_gen_info[] = {
+static fsm_gen_descr_t fsm_gen_info[] = {
     { 0, "startAddrsOffset", "samples" },
     { 1, "endAddrsOffset", "samples" },
     { 2, "startloopAddrsOffset", "samples" },
@@ -166,5 +166,5 @@ static const fluid_gen_info_t fluid_gen_info[] =
 // clang-format on
 
 
-#endif // FLUIDMAX_GEN_H 
+#endif // FSM_GEN_H 
 
