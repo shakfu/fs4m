@@ -175,27 +175,14 @@ static fluidmax_gen_descr_t fluidmax_gen_info[] = {
 void fluidmax_dsp64(t_fluidmax* x, t_object* dsp64, short* count,
                     double samplerate, long maxvectorsize, long flags)
 {
-    post("my sample rate is: %f", samplerate);
-
-    // instead of calling dsp_add(), we send the "dsp_add64" message to the
-    // object representing the dsp chain the arguments passed are: 1: the dsp64
-    // object passed-in by the calling function 2: the symbol of the
-    // "dsp_add64" message we are sending 3: a pointer to your object 4: a
-    // pointer to your 64-bit perform method 5: flags to alter how the signal
-    // chain handles your object -- just pass 0 6: a generic pointer that you
-    // can use to pass any additional data to your perform method
-
     object_method(dsp64, gensym("dsp_add64"), x, fluidmax_perform64, 0, NULL);
 }
 
-
-// this is the 64-bit perform method audio vectors
 void fluidmax_perform64(t_fluidmax* x, t_object* dsp64, double** ins,
                         long numins, double** outs, long numouts,
                         long sampleframes, long flags, void* userparam)
 {
-    t_double* outL = outs[0]; // we get audio for each outlet of the object
-                              // from the **outs argument
+    t_double* outL = outs[0];
     t_double* outR = outs[1];
     int n = (int)sampleframes;
 
@@ -230,7 +217,7 @@ char* fluidmax_translate_fullpath(char* maxpath, char* fullpath)
 
 t_symbol* fluidmax_get_stripped_name(const char* fullpath)
 {
-    char stripped[1024];
+    char stripped[MAX_PATH_CHARS];
     int i;
 
     for (i = (int)strlen(fullpath) - 1; i >= 0; i--) {
@@ -306,9 +293,9 @@ void fluidmax_do_load(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 void fluidmax_load_with_dialog(t_fluidmax* x, t_symbol* s, short argc,
                                t_atom* argv)
 {
-    char filename[256];
-    char maxpath[1024];
-    char fullpath[1024];
+    char filename[MAX_FILENAME_CHARS];
+    char maxpath[MAX_PATH_CHARS];
+    char fullpath[MAX_PATH_CHARS];
     t_fourcc type;
     short path;
 
@@ -340,8 +327,8 @@ void fluidmax_load(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
             if (string[0] == '/')
                 defer(x, (method)fluidmax_do_load, NULL, argc, argv);
             else {
-                char maxpath[1024];
-                char fullpath[1024];
+                char maxpath[MAX_PATH_CHARS];
+                char fullpath[MAX_PATH_CHARS];
                 short path;
                 t_fourcc type;
                 t_atom a;
@@ -352,7 +339,9 @@ void fluidmax_load(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                     return;
                 }
 
-                atom_setsym(&a, gensym(fluidmax_translate_fullpath(maxpath, fullpath)));
+                atom_setsym(
+                    &a,
+                    gensym(fluidmax_translate_fullpath(maxpath, fullpath)));
                 defer(x, (method)fluidmax_do_load, NULL, 1, &a);
             }
         }
@@ -412,7 +401,8 @@ void fluidmax_unload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                     }
                 }
 
-                error("fluidsynth~: cannot unload soundfont '%s'", sym->s_name);
+                error("fluidsynth~: cannot unload soundfont '%s'",
+                      sym->s_name);
             }
         }
     }
@@ -452,7 +442,8 @@ void fluidmax_reload(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                         post("fluidsynth~: reloaded soundfont '%s' (id %d)",
                              name->s_name, id);
                     else
-                        error("fluidsynth~: cannot reload soundfont '%s' (id %d)",
+                        error("fluidsynth~: cannot reload soundfont '%s' (id "
+                              "%d)",
                               name->s_name, id);
                 }
             } else {
@@ -510,7 +501,8 @@ void fluidmax_list(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 }
 
 
-void fluidmax_control_change(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fluidmax_control_change(t_fluidmax* x, t_symbol* s, short argc,
+                             t_atom* argv)
 {
 
     if (argc > 0 && is_number(argv)) {
@@ -702,22 +694,28 @@ void fluidmax_reverb(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
         fluid_synth_reverb_on(x->synth, r.fx_group, 1);
         x->reverb = 1;
     } else if (is_number(argv)) {
-        res = fluid_synth_get_reverb_group_roomsize(x->synth, r.fx_group, &r.roomsize);
+        res = fluid_synth_get_reverb_group_roomsize(x->synth, r.fx_group,
+                                                    &r.roomsize);
         if (res != FLUID_OK) {
             object_error((t_object*)x, "could not get reverb group roomsize");
             goto exception;
         }
-        res = fluid_synth_get_reverb_group_damp(x->synth, r.fx_group, &r.damping);
+        res = fluid_synth_get_reverb_group_damp(x->synth, r.fx_group,
+                                                &r.damping);
         if (res != FLUID_OK) {
-            object_error((t_object*)x, "could not get reverb group damping value");
+            object_error((t_object*)x,
+                         "could not get reverb group damping value");
             goto exception;
         }
-        res = fluid_synth_get_reverb_group_width(x->synth, r.fx_group, &r.width);
+        res = fluid_synth_get_reverb_group_width(x->synth, r.fx_group,
+                                                 &r.width);
         if (res != FLUID_OK) {
-            object_error((t_object*)x, "could not get reverb group width value");
+            object_error((t_object*)x,
+                         "could not get reverb group width value");
             goto exception;
         }
-        res = fluid_synth_get_reverb_group_level(x->synth, r.fx_group, &r.level);
+        res = fluid_synth_get_reverb_group_level(x->synth, r.fx_group,
+                                                 &r.level);
         if (res != FLUID_OK) {
             object_error((t_object*)x, "could not get reverb group level");
             goto exception;
@@ -737,31 +735,36 @@ void fluidmax_reverb(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
         case 2:
             if (is_number(argv + 1))
                 r.roomsize = get_number_as_float(argv + 1);
-        case 1: 
-            {
+        case 1: {
             r.level = get_number_as_float(argv);
-            res = fluid_synth_set_reverb_group_roomsize(x->synth, r.fx_group, r.roomsize);
+            res = fluid_synth_set_reverb_group_roomsize(x->synth, r.fx_group,
+                                                        r.roomsize);
             if (res != FLUID_OK) {
-                object_error((t_object*)x, "could not set reverb group roomsize");
+                object_error((t_object*)x,
+                             "could not set reverb group roomsize");
                 goto exception;
             }
-            res = fluid_synth_set_reverb_group_damp(x->synth, r.fx_group, r.damping);
+            res = fluid_synth_set_reverb_group_damp(x->synth, r.fx_group,
+                                                    r.damping);
             if (res != FLUID_OK) {
-                object_error((t_object*)x, "could not set reverb group damping value");
+                object_error((t_object*)x,
+                             "could not set reverb group damping value");
                 goto exception;
             }
-            res = fluid_synth_set_reverb_group_width(x->synth, r.fx_group, r.width);
+            res = fluid_synth_set_reverb_group_width(x->synth, r.fx_group,
+                                                     r.width);
             if (res != FLUID_OK) {
-                object_error((t_object*)x, "could not set reverb group width value");
+                object_error((t_object*)x,
+                             "could not set reverb group width value");
                 goto exception;
             }
-            res = fluid_synth_set_reverb_group_level(x->synth, r.fx_group, r.level);
+            res = fluid_synth_set_reverb_group_level(x->synth, r.fx_group,
+                                                     r.level);
             if (res != FLUID_OK) {
                 object_error((t_object*)x, "could not set reverb group level");
                 goto exception;
             }
-            }
-            break;
+        } break;
         }
     } else if (is_symbol(argv)) {
         t_symbol* sym = atom_getsym(argv);
@@ -791,19 +794,23 @@ void fluidmax_chorus(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
         x->chorus = 1;
     } else if (is_number(argv)) {
 
-        res = fluid_synth_get_chorus_group_speed(x->synth, c.fx_group, &c.speed);
+        res = fluid_synth_get_chorus_group_speed(x->synth, c.fx_group,
+                                                 &c.speed);
         if (res != FLUID_OK) {
             object_error((t_object*)x, "could not get chorus group speed");
             goto exception;
         }
-        res = fluid_synth_get_chorus_group_depth(x->synth, c.fx_group, &c.depth_ms);
+        res = fluid_synth_get_chorus_group_depth(x->synth, c.fx_group,
+                                                 &c.depth_ms);
         if (res != FLUID_OK) {
-            object_error((t_object*)x, "could not get chorus group depth_ms value");
+            object_error((t_object*)x,
+                         "could not get chorus group depth_ms value");
             goto exception;
         }
         res = fluid_synth_get_chorus_group_type(x->synth, c.fx_group, &c.type);
         if (res != FLUID_OK) {
-            object_error((t_object*)x, "could not get chorus group type value");
+            object_error((t_object*)x,
+                         "could not get chorus group type value");
             goto exception;
         }
         res = fluid_synth_get_chorus_group_nr(x->synth, c.fx_group, &c.nr);
@@ -811,7 +818,8 @@ void fluidmax_chorus(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
             object_error((t_object*)x, "could not get chorus group nr value");
             goto exception;
         }
-        res = fluid_synth_get_chorus_group_level(x->synth, c.fx_group, &c.level);
+        res = fluid_synth_get_chorus_group_level(x->synth, c.fx_group,
+                                                 &c.level);
         if (res != FLUID_OK) {
             object_error((t_object*)x, "could not get chorus group level");
             goto exception;
@@ -834,8 +842,7 @@ void fluidmax_chorus(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
         case 2:
             if (is_number(argv + 1))
                 c.speed = get_number_as_float(argv + 1);
-        case 1:
-            {
+        case 1: {
             // fluid_synth_set_chorus(x->synth, nr, get_number_as_float(argv),
             //                        speed, depth, type);
 
@@ -846,27 +853,32 @@ void fluidmax_chorus(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
                 object_error((t_object*)x, "could not set chorus group nr");
                 goto exception;
             }
-            res = fluid_synth_set_chorus_group_level(x->synth, c.fx_group, c.level);
+            res = fluid_synth_set_chorus_group_level(x->synth, c.fx_group,
+                                                     c.level);
             if (res != FLUID_OK) {
                 object_error((t_object*)x, "could not set chorus group level");
                 goto exception;
             }
-            res = fluid_synth_set_chorus_group_speed(x->synth, c.fx_group, c.speed);
+            res = fluid_synth_set_chorus_group_speed(x->synth, c.fx_group,
+                                                     c.speed);
             if (res != FLUID_OK) {
                 object_error((t_object*)x, "could not set chorus group speed");
                 goto exception;
             }
-            res = fluid_synth_set_chorus_group_depth(x->synth, c.fx_group, c.depth_ms);
+            res = fluid_synth_set_chorus_group_depth(x->synth, c.fx_group,
+                                                     c.depth_ms);
             if (res != FLUID_OK) {
-                object_error((t_object*)x, "could not set chorus group depth_ms");
+                object_error((t_object*)x,
+                             "could not set chorus group depth_ms");
                 goto exception;
             }
-            res = fluid_synth_set_chorus_group_type(x->synth, c.fx_group, c.type);
+            res = fluid_synth_set_chorus_group_type(x->synth, c.fx_group,
+                                                    c.type);
             if (res != FLUID_OK) {
                 object_error((t_object*)x, "could not set chorus group type");
                 goto exception;
             }
-            }
+        }
         case 0:
             break;
         }
@@ -897,7 +909,8 @@ void fluidmax_set_gain(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_set_resampling_method(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fluidmax_set_resampling_method(t_fluidmax* x, t_symbol* s, short argc,
+                                    t_atom* argv)
 {
 
     if (argc > 0) {
@@ -943,11 +956,14 @@ void fluidmax_panic(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 
 void fluidmax_reset(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
 {
-    int n = fluid_synth_count_midi_channels(x->synth);
-    int i;
+    // fluid_synth_system_reset(x->synth);
 
-    // for (i = 0; i < n; i++)
-    //     fluid_channel_reset(x->synth->channel[i]);
+    // fluid_synth_reset_basic_channel(x->synth, -1); // for all channels;
+    int n = fluid_synth_count_midi_channels(x->synth);
+    for (int i = 0; i < n; i++) {
+        fluid_synth_reset_basic_channel(x->synth, i);
+        // fluid_channel_reset(x->synth->channel[i]);
+    }
 }
 
 void fluidmax_mute(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
@@ -1036,7 +1052,8 @@ void fluidmax_tuning_select(t_fluidmax* x, t_symbol* s, short argc,
     else if (channel > fluid_synth_count_midi_channels(x->synth))
         channel = fluid_synth_count_midi_channels(x->synth);
 
-    // fluid_synth_select_tuning(x->synth, channel - 1, tuning_bank, tuning_prog);
+    // fluid_synth_select_tuning(x->synth, channel - 1, tuning_bank,
+    // tuning_prog);
 }
 
 void fluidmax_tuning_reset(t_fluidmax* x, t_symbol* s, short argc,
@@ -1053,6 +1070,7 @@ void fluidmax_tuning_reset(t_fluidmax* x, t_symbol* s, short argc,
         channel = fluid_synth_count_midi_channels(x->synth);
 
     // fluid_synth_reset_tuning(x->synth, channel - 1);
+    fluid_synth_deactivate_tuning(x->synth, channel-1, FALSE);
 }
 
 /* more tuning ??
@@ -1077,7 +1095,8 @@ void fluidmax_version(t_object* o)
 
 // extern fluid_gen_info_t fluid_gen_info[];
 
-void fluidmax_print_soundfonts(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fluidmax_print_soundfonts(t_fluidmax* x, t_symbol* s, short argc,
+                               t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
     int i;
@@ -1095,7 +1114,9 @@ void fluidmax_print_soundfonts(t_fluidmax* x, t_symbol* s, short argc, t_atom* a
         post("  %d: '%s' (id %d)", i, name->s_name, id);
     }
 }
-void fluidmax_print_presets(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+
+void fluidmax_print_presets(t_fluidmax* x, t_symbol* s, short argc,
+                            t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
 
@@ -1115,25 +1136,21 @@ void fluidmax_print_presets(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv
             }
 
             if (sf != NULL) {
-                // fluid_preset_t preset;
+                fluid_preset_t *preset;
 
-                // fluid_sfont_iteration_start(sf);
+                fluid_sfont_iteration_start(sf);
 
-                // post("fluidsynth~ presets of soundfont '%s':",
-                //      name->s_name);
+                post("fluidsynth~ presets of soundfont '%s':", name->s_name);
 
-                // while (fluid_sfont_iteration_next(sf, &preset)
-                //        > 0) {
-                //     char* preset_str = fluid_preset_get_name(
-                //         &preset);
-                //     t_symbol* preset_name = gensym(preset_str);
-                //     int bank_num = fluid_preset_get_banknum(
-                //         &preset);
-                //     int prog_num = fluid_preset_get_num(&preset);
+                while ((preset = fluid_sfont_iteration_next(sf)) != NULL) {
+                    const char* preset_str = fluid_preset_get_name(preset);
+                    t_symbol* preset_name = gensym(preset_str);
+                    int bank_num = fluid_preset_get_banknum(preset);
+                    int prog_num = fluid_preset_get_num(preset);
 
-                //     post("  '%s': bank %d, program %d",
-                //          preset_name->s_name, bank_num, prog_num);
-                // }
+                    post("  '%s': bank %d, program %d",
+                         preset_name->s_name, bank_num, prog_num);
+                }
             }
         } else {
             int i;
@@ -1163,8 +1180,7 @@ void fluidmax_print_presets(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv
 
                         post("  '%s': soundfont '%s', bank %d, "
                              "program %d",
-                             preset_name->s_name, sf_name->s_name,
-                             i, j);
+                             preset_name->s_name, sf_name->s_name, i, j);
                     }
                 }
             }
@@ -1173,7 +1189,8 @@ void fluidmax_print_presets(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv
         error("fluidsynth~: no soundfonts loaded");
 }
 
-void fluidmax_print_channels(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fluidmax_print_channels(t_fluidmax* x, t_symbol* s, short argc,
+                             t_atom* argv)
 {
     int n = fluid_synth_count_midi_channels(x->synth);
     int i;
@@ -1181,8 +1198,7 @@ void fluidmax_print_channels(t_fluidmax* x, t_symbol* s, short argc, t_atom* arg
     post("fluidsynth~ channels:");
 
     for (i = 0; i < n; i++) {
-        fluid_preset_t* preset = fluid_synth_get_channel_preset(
-            x->synth, i);
+        fluid_preset_t* preset = fluid_synth_get_channel_preset(x->synth, i);
 
         if (preset != NULL) {
             const char* preset_str = fluid_preset_get_name(preset);
@@ -1192,19 +1208,19 @@ void fluidmax_print_channels(t_fluidmax* x, t_symbol* s, short argc, t_atom* arg
             int prog_num;
             fluid_sfont_t* sf;
 
-            fluid_synth_get_program(x->synth, i, &sf_id, &bank_num,
-                                    &prog_num);
+            fluid_synth_get_program(x->synth, i, &sf_id, &bank_num, &prog_num);
             sf = fluid_synth_get_sfont_by_id(x->synth, sf_id);
 
-            post("  %d: soundfont '%s', bank %d, program %d: '%s'",
-                 i + 1, fluidmax_sfont_get_name(sf)->s_name,
-                 bank_num, prog_num, preset_name->s_name);
+            post("  %d: soundfont '%s', bank %d, program %d: '%s'", i + 1,
+                 fluidmax_sfont_get_name(sf)->s_name, bank_num, prog_num,
+                 preset_name->s_name);
         } else
             post("  channel %d: no preset", i + 1);
     }
 }
 
-void fluidmax_print_generators(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fluidmax_print_generators(t_fluidmax* x, t_symbol* s, short argc,
+                               t_atom* argv)
 {
     // int channel = 1;
     // int n = GEN_LAST;
@@ -1239,7 +1255,8 @@ void fluidmax_print_gain(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     post("gain: %g", gain);
 }
 
-void fluidmax_print_reverb(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fluidmax_print_reverb(t_fluidmax* x, t_symbol* s, short argc,
+                           t_atom* argv)
 {
     t_fx_reverb r;
     r.fx_group = -1;
@@ -1253,14 +1270,15 @@ void fluidmax_print_reverb(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
         post("fluidsynth~ current reverb parameters:");
         post("  level: %f", r.level);
         post("  room size: %f", r.roomsize);
-        post("  damping: %f",r.damping);
+        post("  damping: %f", r.damping);
         post("  width: %f", r.width);
     } else {
         post("fluidsynth~: reverb off");
     }
 }
 
-void fluidmax_print_chorus(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
+void fluidmax_print_chorus(t_fluidmax* x, t_symbol* s, short argc,
+                           t_atom* argv)
 {
     t_fx_chorus c;
     c.fx_group = -1;
@@ -1299,7 +1317,7 @@ void fluidmax_print(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
             } else if (sym == gensym("gain")) {
                 fluidmax_print_gain(x, s, argc, argv);
             } else if (sym == gensym("reverb")) {
-                fluidmax_print_reverb(x, s, argc, argv);                
+                fluidmax_print_reverb(x, s, argc, argv);
             } else if (sym == gensym("chorus")) {
                 fluidmax_print_chorus(x, s, argc, argv);
             }
@@ -1307,7 +1325,8 @@ void fluidmax_print(t_fluidmax* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fluidmax_info_soundfonts(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
+void fluidmax_info_soundfonts(t_fluidmax* x, t_symbol* s, long argc,
+                              t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
     int i;
@@ -1346,27 +1365,23 @@ void fluidmax_info_presets(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
         }
 
         if (sf != NULL) {
-            // fluid_preset_t preset;
+            fluid_preset_t * preset;
 
-            // fluid_sfont_iteration_start(sf);
+            fluid_sfont_iteration_start(sf);
 
-            // while (fluid_sfont_iteration_next(sf, &preset)
-            //        > 0) {
-            //     char* preset_str = fluid_preset_get_name(
-            //         &preset);
-            //     t_symbol* preset_name = gensym(preset_str);
-            //     int bank_num = fluid_preset_get_banknum(
-            //         &preset);
-            //     int prog_num = fluid_preset_get_num(&preset);
-            //     t_atom a[4];
+            while ((preset = fluid_sfont_iteration_next(sf)) != NULL) {
+                const char* preset_str = fluid_preset_get_name(preset);
+                t_symbol* preset_name = gensym(preset_str);
+                int bank_num = fluid_preset_get_banknum(preset);
+                int prog_num = fluid_preset_get_num(preset);
+                t_atom a[4];
 
-            //     atom_setsym(a, preset_name);
-            //     atom_setsym(a + 1, sf_name);
-            //     atom_setlong(a + 2, bank_num);
-            //     atom_setlong(a + 3, prog_num);
-            //     outlet_anything(x->outlet, gensym("preset"), 4,
-            //                     a);
-            // }
+                atom_setsym(a, preset_name);
+                atom_setsym(a + 1, sf_name);
+                atom_setlong(a + 2, bank_num);
+                atom_setlong(a + 3, prog_num);
+                outlet_anything(x->outlet, gensym("preset"), 4, a);
+            }
         }
     } else {
 
@@ -1385,8 +1400,7 @@ void fluidmax_info_presets(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
                 }
 
                 if (preset != NULL) {
-                    t_symbol* sf_name
-                        = fluidmax_sfont_get_name(sf);
+                    t_symbol* sf_name = fluidmax_sfont_get_name(sf);
                     const char* preset_str = fluid_preset_get_name(preset);
                     t_symbol* preset_name = gensym(preset_str);
                     t_atom a[4];
@@ -1451,7 +1465,8 @@ void fluidmax_info_reverb(t_fluidmax* x, t_symbol* s, long argc, t_atom* argv)
     r.fx_group = -1;
 
     if (x->reverb != 0) {
-        fluid_synth_get_reverb_group_roomsize(x->synth, r.fx_group, &r.roomsize);
+        fluid_synth_get_reverb_group_roomsize(x->synth, r.fx_group,
+                                              &r.roomsize);
         fluid_synth_get_reverb_group_damp(x->synth, r.fx_group, &r.damping);
         fluid_synth_get_reverb_group_level(x->synth, r.fx_group, &r.level);
         fluid_synth_get_reverb_group_width(x->synth, r.fx_group, &r.width);
@@ -1567,8 +1582,7 @@ void* fluidmax_new(t_symbol* s, long argc, t_atom* argv)
     }
 
     if (x->settings != NULL) {
-        fluid_settings_setint(x->settings, "synth.midi-channels",
-                              midi_channels);
+        fluid_settings_setint(x->settings, "synth.midi-channels", midi_channels);
         fluid_settings_setint(x->settings, "synth.polyphony", polyphony);
         fluid_settings_setnum(x->settings, "synth.gain", 0.600000);
         fluid_settings_setnum(x->settings, "synth.sample-rate", sys_getsr());
@@ -1576,8 +1590,8 @@ void* fluidmax_new(t_symbol* s, long argc, t_atom* argv)
         x->synth = new_fluid_synth(x->settings);
 
         if (x->synth != NULL) {
-            // fluid_synth_set_reverb_on(x->synth, 0);
-            // fluid_synth_set_chorus_on(x->synth, 0);
+            fluid_synth_reverb_on(x->synth, -1, 0);
+            fluid_synth_chorus_on(x->synth, -1, 0);
 
             if (argc > 0 && is_symbol(argv))
                 fluidmax_load(x, NULL, argc, argv);
