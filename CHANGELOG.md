@@ -15,12 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [0.0.x]
 
-- added bundler for standalone externals.
+- Added more consistent error/post mechanism.
 
-- eliminated all remaining warnings.
+- Added bundler for standalone externals.
 
-- refactored long functions.
+- Resolved all remaining warnings.
 
-- converted old `fluidmax~` external to moderns idioms.
+- Refactored long functions.
 
-- project created.
+- Converted old `fluidmax~` external to moderns idioms.
+
+- Created project.

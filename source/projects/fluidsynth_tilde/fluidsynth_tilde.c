@@ -1,6 +1,8 @@
 #include "fluidsynth_tilde.h"
 #include "fluidsynth_tilde_gen.h"
 
+/*----------------------------------------------------------------------------*/
+// core struct
 
 struct t_fsm {
     t_pxobject obj;
@@ -72,30 +74,20 @@ int is_symbol(t_atom* a) { return atom_gettype(a) == A_SYM; }
 
 int get_number_as_long(t_atom* a)
 {
-    if (is_number(a)) {
-        if (is_long(a)) {
-            return (int)atom_getlong(a);
-        } else {
-            return (int)atom_getfloat(a);
-        }
-    } else {
+    if (!is_number(a)) {
         error("atom is not a number");
         return -1;
     }
+    return is_long(a) ? (int)atom_getlong(a) : (int)atom_getfloat(a);
 }
 
 double get_number_as_float(t_atom* a)
 {
-    if (is_number(a)) {
-        if (is_long(a)) {
-            return (double)atom_getlong(a);
-        } else {
-            return atom_getfloat(a);
-        }
-    } else {
+    if (!is_number(a)) {
         error("atom is not a number");
         return -1.0;
     }
+    return is_float(a) ? atom_getfloat(a) : (double)atom_getlong(a);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -176,25 +168,20 @@ void fsm_do_load(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
             int id = fluid_synth_sfload(x->synth, filename, 0);
 
             if (id >= 0) {
-                post("fluidsynth~: loaded soundfont '%s' (id %d)",
-                     name->s_name, id);
+                fsm_post(x,"loaded soundfont '%s' (id %d)", name->s_name, id);
 
                 fluid_synth_program_reset(x->synth);
 
                 outlet_bang(x->outlet);
             } else
-                error("fluidsynth~: cannot load soundfont from file '%s'",
-                      filename);
+                fsm_error(x, "cannot load soundfont from file '%s'", filename);
         } else {
-            error("fluidsynth~: soundfont named '%s' is already loaded",
-                  name->s_name);
-            return;
+            fsm_error(x, "soundfont named '%s' is already loaded", name->s_name);
         }
     }
 }
 
-void fsm_load_with_dialog(t_fsm* x, t_symbol* s, short argc,
-                               t_atom* argv)
+void fsm_load_with_dialog(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     char filename[MAX_FILENAME_CHARS];
     char maxpath[MAX_PATH_CHARS];
@@ -238,13 +225,11 @@ void fsm_load(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 
                 if (locatefile_extended(string, &path, &type, 0, 0)
                     || path_topotentialname(path, string, maxpath, 0) != 0) {
-                    error("fluidsynth~: cannot find file '%s'", string);
+                    fsm_error(x, "cannot find file '%s'", string);
                     return;
                 }
 
-                atom_setsym(
-                    &a,
-                    gensym(fsm_translate_fullpath(maxpath, fullpath)));
+                atom_setsym(&a, gensym(fsm_translate_fullpath(maxpath, fullpath)));
                 defer(x, (method)fsm_do_load, NULL, 1, &a);
             }
         }
@@ -253,60 +238,58 @@ void fsm_load(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 
 void fsm_unload(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
-    if (argc > 0) {
-        if (is_number(argv)) {
-            int id = get_number_as_long(argv);
-            fluid_sfont_t* sf = fluid_synth_get_sfont_by_id(x->synth, id);
+    if (argc == 0) {
+        fsm_error(x, "no soundfont specified");
+        return;
+    }
 
-            if (sf != NULL) {
+    if (is_number(argv)) {
+        int id = get_number_as_long(argv);
+        fluid_sfont_t* sf = fluid_synth_get_sfont_by_id(x->synth, id);
+
+        if (sf != NULL) {
+            t_symbol* name = fsm_sfont_get_name(sf);
+
+            if (fluid_synth_sfunload(x->synth, id, 0) >= 0) {
+                fsm_post(x, "unloaded soundfont '%s' (id %d)", name->s_name, id);
+                return;
+            }
+        }
+
+        fsm_error(x, "cannot unload soundfont %d", id);
+    } else if (is_symbol(argv)) {
+        t_symbol* sym = atom_getsym(argv);
+
+        if (sym == gensym("all")) {
+            fluid_sfont_t* sf = fluid_synth_get_sfont(x->synth, 0);
+
+            fluid_synth_system_reset(x->synth);
+
+            while (sf != NULL) {
                 t_symbol* name = fsm_sfont_get_name(sf);
+                unsigned int id = fluid_sfont_get_id(sf);
 
                 if (fluid_synth_sfunload(x->synth, id, 0) >= 0) {
-                    post("fluidsynth~: unloaded soundfont '%s' (id %d)",
-                         name->s_name, id);
+                    fsm_post(x, "unloaded soundfont '%s' (id %d)", name->s_name, id);
+                } else {
+                    fsm_error(x, "cannot unload soundfont '%s' (id %d)", name->s_name, id);
+                }
+
+                sf = fluid_synth_get_sfont(x->synth, 0);
+            }
+        } else {
+            fluid_sfont_t* sf = fsm_sfont_get_by_name(x, sym);
+
+            if (sf != NULL) {
+                unsigned int id = fluid_sfont_get_id(sf);
+
+                if (fluid_synth_sfunload(x->synth, id, 0) >= 0) {
+                    fsm_post(x, "unloaded soundfont '%s' (id %d)", sym->s_name, id);
                     return;
                 }
             }
 
-            error("fluidsynth~: cannot unload soundfont %d", id);
-        } else if (is_symbol(argv)) {
-            t_symbol* sym = atom_getsym(argv);
-
-            if (sym == gensym("all")) {
-                fluid_sfont_t* sf = fluid_synth_get_sfont(x->synth, 0);
-
-                fluid_synth_system_reset(x->synth);
-
-                while (sf != NULL) {
-                    t_symbol* name = fsm_sfont_get_name(sf);
-                    unsigned int id = fluid_sfont_get_id(sf);
-
-                    if (fluid_synth_sfunload(x->synth, id, 0) >= 0)
-                        post("fluidsynth~: unloaded soundfont '%s' (id %d)",
-                             name->s_name, id);
-                    else
-                        error("fluidsynth~: cannot unload soundfont '%s' (id "
-                              "%d)",
-                              name->s_name, id);
-
-                    sf = fluid_synth_get_sfont(x->synth, 0);
-                }
-            } else {
-                fluid_sfont_t* sf = fsm_sfont_get_by_name(x, sym);
-
-                if (sf != NULL) {
-                    unsigned int id = fluid_sfont_get_id(sf);
-
-                    if (fluid_synth_sfunload(x->synth, id, 0) >= 0) {
-                        post("fluidsynth~: unloaded soundfont '%s' (id %d)",
-                             sym->s_name, id);
-                        return;
-                    }
-                }
-
-                error("fluidsynth~: cannot unload soundfont '%s'",
-                      sym->s_name);
-            }
+            fsm_error(x, "cannot unload soundfont '%s'", sym->s_name);
         }
     }
 }
@@ -320,11 +303,11 @@ void fsm_reload(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 
             if (sf != NULL) {
                 if (fluid_synth_sfreload(x->synth, id) >= 0) {
-                    post("fluidsynth~: reloaded soundfont '%s' (id %d)", id);
+                    fsm_post(x, "reloaded soundfont '%s' (id %d)", id);
                     return;
                 }
 
-                error("fluidsynth~: cannot reload soundfont %d", id);
+                fsm_error(x, "cannot reload soundfont %d", id);
             }
         } else if (is_symbol(argv)) {
             t_symbol* sym = atom_getsym(argv);
@@ -341,13 +324,11 @@ void fsm_reload(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
                     unsigned int id = fluid_sfont_get_id(sf);
 
 
-                    if (fluid_synth_sfreload(x->synth, id) >= 0)
-                        post("fluidsynth~: reloaded soundfont '%s' (id %d)",
-                             name->s_name, id);
-                    else
-                        error("fluidsynth~: cannot reload soundfont '%s' (id "
-                              "%d)",
-                              name->s_name, id);
+                    if (fluid_synth_sfreload(x->synth, id) >= 0) {
+                        fsm_post(x, "reloaded soundfont '%s' (id %d)", name->s_name, id);
+                    } else {
+                        fsm_error(x, "cannot reload soundfont '%s' (id %d)", name->s_name, id);
+                    }
                 }
             } else {
                 fluid_sfont_t* sf = fsm_sfont_get_by_name(x, sym);
@@ -356,14 +337,12 @@ void fsm_reload(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
                     unsigned int id = fluid_sfont_get_id(sf);
 
                     if (fluid_synth_sfreload(x->synth, id) >= 0) {
-                        post("fluidsynth~: reloaded soundfont '%s' (id %d)",
-                             sym->s_name, id);
+                        fsm_post(x, "reloaded soundfont '%s' (id %d)", sym->s_name, id);
                         return;
                     }
                 }
 
-                error("fluidsynth~: cannot reload soundfont '%s'",
-                      sym->s_name);
+                fsm_error(x, "cannot reload soundfont '%s'", sym->s_name);
             }
         }
     }
@@ -406,7 +385,6 @@ void fsm_list(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 
 void fsm_control_change(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
-
     if (argc > 0 && is_number(argv)) {
         int value = 64;
         int channel = 1;
@@ -436,7 +414,6 @@ void fsm_control_change(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 
 void fsm_mod(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
-
     if (argc > 1 && is_number(argv) && is_number(argv + 1)) {
         int param = get_number_as_long(argv);
         float value = get_number_as_float(argv + 1);
@@ -481,8 +458,7 @@ void fsm_pitch_bend(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fsm_pitch_bend_wheel(t_fsm* x, t_symbol* s, short argc,
-                               t_atom* argv)
+void fsm_pitch_bend_wheel(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0 && is_number(argv)) {
         int channel = 1;
@@ -495,8 +471,7 @@ void fsm_pitch_bend_wheel(t_fsm* x, t_symbol* s, short argc,
     }
 }
 
-void fsm_program_change(t_fsm* x, t_symbol* s, short argc,
-                             t_atom* argv)
+void fsm_program_change(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0 && is_number(argv)) {
         int channel = 1;
@@ -578,8 +553,7 @@ void fsm_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
                                            fluid_sfont_get_id(sf), bank,
                                            preset);
             else
-                error("fluidsynth~ select: cannot find soundfont named '%s'",
-                      name->s_name);
+                fsm_error(x, "cannot find soundfont named '%s'", name->s_name);
         }
     case 0:
         break;
@@ -599,27 +573,25 @@ void fsm_reverb(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         res = fluid_synth_get_reverb_group_roomsize(x->synth, r.fx_group,
                                                     &r.roomsize);
         if (res != FLUID_OK) {
-            object_error((t_object*)x, "could not get reverb group roomsize");
+            fsm_error(x, "could not get reverb group roomsize");
             goto exception;
         }
         res = fluid_synth_get_reverb_group_damp(x->synth, r.fx_group,
                                                 &r.damping);
         if (res != FLUID_OK) {
-            object_error((t_object*)x,
-                         "could not get reverb group damping value");
+            fsm_error(x, "could not get reverb group damping value");
             goto exception;
         }
         res = fluid_synth_get_reverb_group_width(x->synth, r.fx_group,
                                                  &r.width);
         if (res != FLUID_OK) {
-            object_error((t_object*)x,
-                         "could not get reverb group width value");
+            fsm_error(x, "could not get reverb group width value");
             goto exception;
         }
         res = fluid_synth_get_reverb_group_level(x->synth, r.fx_group,
                                                  &r.level);
         if (res != FLUID_OK) {
-            object_error((t_object*)x, "could not get reverb group level");
+            fsm_error(x, "could not get reverb group level");
             goto exception;
         }
 
@@ -642,28 +614,25 @@ void fsm_reverb(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
             res = fluid_synth_set_reverb_group_roomsize(x->synth, r.fx_group,
                                                         r.roomsize);
             if (res != FLUID_OK) {
-                object_error((t_object*)x,
-                             "could not set reverb group roomsize");
+                fsm_error(x, "could not set reverb group roomsize");
                 goto exception;
             }
             res = fluid_synth_set_reverb_group_damp(x->synth, r.fx_group,
                                                     r.damping);
             if (res != FLUID_OK) {
-                object_error((t_object*)x,
-                             "could not set reverb group damping value");
+                fsm_error(x, "could not set reverb group damping value");
                 goto exception;
             }
             res = fluid_synth_set_reverb_group_width(x->synth, r.fx_group,
                                                      r.width);
             if (res != FLUID_OK) {
-                object_error((t_object*)x,
-                             "could not set reverb group width value");
+                fsm_error(x, "could not set reverb group width value");
                 goto exception;
             }
             res = fluid_synth_set_reverb_group_level(x->synth, r.fx_group,
                                                      r.level);
             if (res != FLUID_OK) {
-                object_error((t_object*)x, "could not set reverb group level");
+                fsm_error(x, "could not set reverb group level");
                 goto exception;
             }
         } break;
@@ -682,7 +651,7 @@ void fsm_reverb(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     return;
 
 exception:
-    object_error((t_object*)x, "could not get/set reverb value");
+    fsm_error(x, "could not get/set reverb value");
 }
 
 
@@ -699,31 +668,29 @@ void fsm_chorus(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         res = fluid_synth_get_chorus_group_speed(x->synth, c.fx_group,
                                                  &c.speed);
         if (res != FLUID_OK) {
-            object_error((t_object*)x, "could not get chorus group speed");
+            fsm_error(x, "could not get chorus group speed");
             goto exception;
         }
         res = fluid_synth_get_chorus_group_depth(x->synth, c.fx_group,
                                                  &c.depth_ms);
         if (res != FLUID_OK) {
-            object_error((t_object*)x,
-                         "could not get chorus group depth_ms value");
+            fsm_error(x, "could not get chorus group depth_ms value");
             goto exception;
         }
         res = fluid_synth_get_chorus_group_type(x->synth, c.fx_group, &c.type);
         if (res != FLUID_OK) {
-            object_error((t_object*)x,
-                         "could not get chorus group type value");
+            fsm_error(x, "could not get chorus group type value");
             goto exception;
         }
         res = fluid_synth_get_chorus_group_nr(x->synth, c.fx_group, &c.nr);
         if (res != FLUID_OK) {
-            object_error((t_object*)x, "could not get chorus group nr value");
+            fsm_error(x, "could not get chorus group nr value");
             goto exception;
         }
         res = fluid_synth_get_chorus_group_level(x->synth, c.fx_group,
                                                  &c.level);
         if (res != FLUID_OK) {
-            object_error((t_object*)x, "could not get chorus group level");
+            fsm_error(x, "could not get chorus group level");
             goto exception;
         }
 
@@ -752,32 +719,31 @@ void fsm_chorus(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 
             res = fluid_synth_set_chorus_group_nr(x->synth, c.fx_group, c.nr);
             if (res != FLUID_OK) {
-                object_error((t_object*)x, "could not set chorus group nr");
+                fsm_error(x, "could not set chorus group nr");
                 goto exception;
             }
             res = fluid_synth_set_chorus_group_level(x->synth, c.fx_group,
                                                      c.level);
             if (res != FLUID_OK) {
-                object_error((t_object*)x, "could not set chorus group level");
+                fsm_error(x, "could not set chorus group level");
                 goto exception;
             }
             res = fluid_synth_set_chorus_group_speed(x->synth, c.fx_group,
                                                      c.speed);
             if (res != FLUID_OK) {
-                object_error((t_object*)x, "could not set chorus group speed");
+                fsm_error(x, "could not set chorus group speed");
                 goto exception;
             }
             res = fluid_synth_set_chorus_group_depth(x->synth, c.fx_group,
                                                      c.depth_ms);
             if (res != FLUID_OK) {
-                object_error((t_object*)x,
-                             "could not set chorus group depth_ms");
+                fsm_error(x, "could not set chorus group depth_ms");
                 goto exception;
             }
             res = fluid_synth_set_chorus_group_type(x->synth, c.fx_group,
                                                     c.type);
             if (res != FLUID_OK) {
-                object_error((t_object*)x, "could not set chorus group type");
+                fsm_error(x, "could not set chorus group type");
                 goto exception;
             }
         }
@@ -798,12 +764,11 @@ void fsm_chorus(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     return;
 
 exception:
-    object_error((t_object*)x, "could not get/set chorus value");
+    fsm_error(x, "could not get/set chorus value");
 }
 
 void fsm_set_gain(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
-
     if (argc > 0 && is_number(argv)) {
         float gain = get_number_as_float(argv);
 
@@ -811,10 +776,8 @@ void fsm_set_gain(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     }
 }
 
-void fsm_set_resampling_method(t_fsm* x, t_symbol* s, short argc,
-                                    t_atom* argv)
+void fsm_set_resampling_method(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
-
     if (argc > 0) {
         if (is_number(argv)) {
             int ip = (int)atom_getlong(argv);
@@ -845,8 +808,7 @@ void fsm_set_resampling_method(t_fsm* x, t_symbol* s, short argc,
                 fluid_synth_set_interp_method(x->synth, -1,
                                               FLUID_INTERP_7THORDER);
             else
-                error("fluidsynth~: undefined resampling method: %s",
-                      sym->s_name);
+                fsm_error(x, "undefined resampling method: %s", sym->s_name);
         }
     }
 }
@@ -894,8 +856,7 @@ int fluid_synth_count_audio_groups (fluid_synth_t *synth)
 int fluid_synth_count_effects_channels (fluid_synth_t *synth)
 */
 
-void fsm_tuning_octave(t_fsm* x, t_symbol* s, short argc,
-                            t_atom* argv)
+void fsm_tuning_octave(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     t_symbol* name;
     int tuning_bank = 0;
@@ -933,8 +894,7 @@ void fsm_tuning_octave(t_fsm* x, t_symbol* s, short argc,
     //                                  name->s_name, pitch);
 }
 
-void fsm_tuning_select(t_fsm* x, t_symbol* s, short argc,
-                            t_atom* argv)
+void fsm_tuning_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int tuning_bank = 0;
     int tuning_prog = 0;
@@ -958,8 +918,7 @@ void fsm_tuning_select(t_fsm* x, t_symbol* s, short argc,
     // tuning_prog);
 }
 
-void fsm_tuning_reset(t_fsm* x, t_symbol* s, short argc,
-                           t_atom* argv)
+void fsm_tuning_reset(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int channel = 0;
 
@@ -987,11 +946,11 @@ int len, double *pitch)
 
 void fsm_version(t_fsm* x)
 {
-    post("fluidsynth~, version %s (based on FluidSynth %s)", FSM_VERSION,
+    fsm_post(x, "fluidsynth~, version %s (based on FluidSynth %s)", FSM_VERSION,
          FLUIDSYNTH_VERSION);
-    post("  FluidSynth is written by Peter Hanappe et al. (see "
+    fsm_post(x, "  FluidSynth is written by Peter Hanappe et al. (see "
          "fluidsynth.org)");
-    post("  Max/MSP integration by Norbert Schnell IMTR IRCAM - Centre "
+    fsm_post(x, "  Max/MSP integration by Norbert Schnell IMTR IRCAM - Centre "
          "Pompidou");
 }
 
@@ -1004,22 +963,23 @@ void fsm_print_soundfonts(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     int n = fluid_synth_sfcount(x->synth);
     int i;
 
-    if (n > 0)
-        post("fluidsynth~ soundfonts:");
-    else
-        post("fluidsynth~: no soundfonts loaded");
+    if (n > 0) {
+        fsm_post(x, "fluidsynth~ soundfonts:");
+    } else {
+        fsm_error(x, "fluidsynth~: no soundfonts loaded");
+        return;
+    }
 
     for (i = 0; i < n; i++) {
         fluid_sfont_t* sf = fluid_synth_get_sfont(x->synth, i);
         t_symbol* name = fsm_sfont_get_name(sf);
         unsigned int id = fluid_sfont_get_id(sf);
 
-        post("  %d: '%s' (id %d)", i, name->s_name, id);
+        fsm_post(x, "  %d: '%s' (id %d)", i, name->s_name, id);
     }
 }
 
-void fsm_print_presets(t_fsm* x, t_symbol* s, short argc,
-                            t_atom* argv)
+void fsm_print_presets(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
 
@@ -1043,7 +1003,7 @@ void fsm_print_presets(t_fsm* x, t_symbol* s, short argc,
 
                 fluid_sfont_iteration_start(sf);
 
-                post("fluidsynth~ presets of soundfont '%s':", name->s_name);
+                fsm_post(x, "fluidsynth~ presets of soundfont '%s':", name->s_name);
 
                 while ((preset = fluid_sfont_iteration_next(sf)) != NULL) {
                     const char* preset_str = fluid_preset_get_name(preset);
@@ -1051,14 +1011,14 @@ void fsm_print_presets(t_fsm* x, t_symbol* s, short argc,
                     int bank_num = fluid_preset_get_banknum(preset);
                     int prog_num = fluid_preset_get_num(preset);
 
-                    post("  '%s': bank %d, program %d",
+                    fsm_post(x, "  '%s': bank %d, program %d",
                          preset_name->s_name, bank_num, prog_num);
                 }
             }
         } else {
             int i;
 
-            post("fluidsynth~ presets:");
+            fsm_post(x, "fluidsynth~ presets:");
 
             for (i = 0; i < 128; i++) {
                 int j;
@@ -1081,7 +1041,7 @@ void fsm_print_presets(t_fsm* x, t_symbol* s, short argc,
                         const char* preset_str = fluid_preset_get_name(preset);
                         t_symbol* preset_name = gensym(preset_str);
 
-                        post("  '%s': soundfont '%s', bank %d, "
+                        fsm_post(x, "  '%s': soundfont '%s', bank %d, "
                              "program %d",
                              preset_name->s_name, sf_name->s_name, i, j);
                     }
@@ -1089,7 +1049,7 @@ void fsm_print_presets(t_fsm* x, t_symbol* s, short argc,
             }
         }
     } else
-        error("fluidsynth~: no soundfonts loaded");
+        fsm_error(x, "fluidsynth~: no soundfonts loaded");
 }
 
 void fsm_print_channels(t_fsm* x, t_symbol* s, short argc,
@@ -1098,7 +1058,7 @@ void fsm_print_channels(t_fsm* x, t_symbol* s, short argc,
     int n = fluid_synth_count_midi_channels(x->synth);
     int i;
 
-    post("fluidsynth~ channels:");
+    fsm_post(x, "fluidsynth~ channels:");
 
     for (i = 0; i < n; i++) {
         fluid_preset_t* preset = fluid_synth_get_channel_preset(x->synth, i);
@@ -1114,11 +1074,11 @@ void fsm_print_channels(t_fsm* x, t_symbol* s, short argc,
             fluid_synth_get_program(x->synth, i, &sf_id, &bank_num, &prog_num);
             sf = fluid_synth_get_sfont_by_id(x->synth, sf_id);
 
-            post("  %d: soundfont '%s', bank %d, program %d: '%s'", i + 1,
+            fsm_post(x, "  %d: soundfont '%s', bank %d, program %d: '%s'", i + 1,
                  fsm_sfont_get_name(sf)->s_name, bank_num, prog_num,
                  preset_name->s_name);
         } else
-            post("  channel %d: no preset", i + 1);
+            fsm_post(x, "  channel %d: no preset", i + 1);
     }
 }
 
@@ -1136,7 +1096,7 @@ void fsm_print_generators(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     else if (channel > fluid_synth_count_midi_channels(x->synth))
         channel = fluid_synth_count_midi_channels(x->synth);
 
-    post("fluidsynth~ generators of channel %d:", channel);
+    fsm_post(x, "fluidsynth~ generators of channel %d:", channel);
 
     for (i = 0; i < n; i++) {
         const char* name = fsm_gen_info[i].name;
@@ -1145,7 +1105,7 @@ void fsm_print_generators(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         double min = fluid_gen_info[i].min;
         double max = fluid_gen_info[i].max;
 
-        post("  %d '%s': %s %g [%g ... %g] (%s)", i, name,
+        fsm_post(x, "  %d '%s': %s %g [%g ... %g] (%s)", i, name,
              (incr >= 0) ? "" : "-", fabs(incr), min, max, unit);
     }
 }
@@ -1153,7 +1113,7 @@ void fsm_print_generators(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 void fsm_print_gain(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     double gain = fluid_synth_get_gain(x->synth);
-    post("gain: %g", gain);
+    fsm_post(x, "gain: %g", gain);
 }
 
 void fsm_print_reverb(t_fsm* x, t_symbol* s, short argc,
@@ -1168,13 +1128,13 @@ void fsm_print_reverb(t_fsm* x, t_symbol* s, short argc,
     fluid_synth_get_reverb_group_width(x->synth, r.fx_group, &r.width);
 
     if (x->reverb != 0) {
-        post("fluidsynth~ current reverb parameters:");
-        post("  level: %f", r.level);
-        post("  room size: %f", r.roomsize);
-        post("  damping: %f", r.damping);
-        post("  width: %f", r.width);
+        fsm_post(x, "fluidsynth~ current reverb parameters:");
+        fsm_post(x, "  level: %f", r.level);
+        fsm_post(x, "  room size: %f", r.roomsize);
+        fsm_post(x, "  damping: %f", r.damping);
+        fsm_post(x, "  width: %f", r.width);
     } else {
-        post("fluidsynth~: reverb off");
+        fsm_post(x, "fluidsynth~: reverb off");
     }
 }
 
@@ -1191,14 +1151,14 @@ void fsm_print_chorus(t_fsm* x, t_symbol* s, short argc,
         fluid_synth_get_chorus_group_nr(x->synth, c.fx_group, &c.nr);
         fluid_synth_get_chorus_group_type(x->synth, c.fx_group, &c.type);
 
-        post("fluidsynth~ current chorus parameters:");
-        post("  level: %f", c.level);
-        post("  speed: %f Hz", c.speed);
-        post("  depth: %f msec", c.depth_ms);
-        post("  type: %d (%s)", c.type, c.type ? "triangle" : "sine");
-        post("  %d units", c.nr);
+        fsm_post(x, "fluidsynth~ current chorus parameters:");
+        fsm_post(x, "  level: %f", c.level);
+        fsm_post(x, "  speed: %f Hz", c.speed);
+        fsm_post(x, "  depth: %f msec", c.depth_ms);
+        fsm_post(x, "  type: %d (%s)", c.type, c.type ? "triangle" : "sine");
+        fsm_post(x, "  %d units", c.nr);
     } else {
-        post("fluidsynth~: chorus off");
+        fsm_post(x, "fluidsynth~: chorus off");
     }
 }
 
@@ -1248,7 +1208,7 @@ void fsm_info_presets(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
     if (n <= 0) {
-        error("fluidsynth~ info: no soundfonts loaded");
+        fsm_error(x, "fluidsynth~ info: no soundfonts loaded");
         return;
     }
 
@@ -1503,7 +1463,7 @@ void* fsm_new(t_symbol* s, long argc, t_atom* argv)
         delete_fluid_settings(x->settings);
     }
 
-    error("fluidsynth~: cannot create FluidSynth core");
+    fsm_error(x, "fluidsynth~: cannot create FluidSynth core");
 
     return NULL;
 }

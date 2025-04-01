@@ -9,6 +9,9 @@
 #define FSM_VERSION "03/2025 (15)"
 #define M_TWOPI 6.283185308
 
+#define fsm_error(x, ...) object_error((t_object*)(x), __VA_ARGS__);
+#define fsm_post(x, ...) object_post((t_object*)(x), __VA_ARGS__);
+
 typedef struct t_fsm t_fsm;
 
 // Function declarations
