@@ -1,8 +1,8 @@
-# fs4m: a project to modernize the fluidsynth~ external for Max/MSP
+# A modern fluidsynth~ external for Max/MSP
 
-A project to modernize the old Ircam (max 4) `fluidmax~` fluidsynth for Max/MSP external by Norbert Schnell and update it for use by Max 8/9 and fluidsynth 2.4.x. The updated external is called `fluidsynth~` for consistency.
+`fs4m` is a project to modernize the old Ircam (max 4) `fluidmax~` fluidsynth for Max/MSP external by Norbert Schnell and update it for use by Max 8/9 and fluidsynth 2.4.x. The updated external is called `fluidsynth~` for consistency.
 
-So far the prior`fluidmax~` external (included in `source/thirdparty`) has been revised to incorporate modern idioms and deprecated api methods has been removed. In addition, a key goal was to generate audio successfully from an `.sf2` sample archive. To date these steps have been largely done.
+So far code from the prior`fluidmax~` external (included in `source/thirdparty`) has been revised to incorporate modern idioms and deprecated api calls has been removed. In addition, a key goal was to generate audio successfully from an `.sf2` sample archive, which has been achieved.
 
 All development is done on a MacOS M1 Macbook laptop.
 
