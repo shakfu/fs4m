@@ -1,16 +1,19 @@
 # fs4m: fluidsynth for max
 
-An ongoing experiment to modernize the old Ircam (max 4) `fluidmax~` fluidsynth for max external by Norbert Schnell and update it for use by Max 8/9 and fluidsynth 2.4.x
+An ongoing experiment to modernize the old Ircam (max 4) `fluidmax~` fluidsynth for Max/MSP external by Norbert Schnell and update it for use by Max 8/9 and fluidsynth 2.4.x
 
-So far this consists of trying to get a minimal external working with the modern fluidsynth (`fs4m~`) and converting `fluidmax~` to modern idioms.
+So far this consists of converting `fluidmax~` to modern idioms. Which has been done in an initial sense.
 
 All development is being done on a MacOS M1 macbook.
 
+## Requires
+
+```sh
+brew install fluidsynth
+```
+
+
 ## Project Status
-
-### fs4m~
-
-- [ ] initial audio test still not working
 
 
 ### fluidmax~
@@ -21,5 +24,7 @@ All development is being done on a MacOS M1 macbook.
 
 - [x] was able to load `FluidR3_GM.sf2` and generate audio successfully
 
-- [ ] replace deprecated / disabled functions
+- [x] replace deprecated / disabled functions
+
+
 
