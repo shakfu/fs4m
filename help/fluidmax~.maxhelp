@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 97.0, 104.0, 760.0, 762.0 ],
+		"rect" : [ 97.0, 104.0, 1208.0, 751.0 ],
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
@@ -19,7 +19,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 26.0, 118.0, 267.0, 22.0 ],
+					"patching_rect" : [ 24.0, 118.0, 267.0, 22.0 ],
 					"text" : "load /usr/local/share/sounds/sf2/FluidR3_GM.sf2"
 				}
 
@@ -27,12 +27,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-1",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 270.0, 569.0, 539.0, 17.0 ],
+					"patching_rect" : [ 289.0, 569.0, 611.0, 20.0 ],
 					"text" : "(Note that 'tuning-keys' and 'tuning-octave' set a tuning program that has to be explicitly called with 'tuning-select')"
 				}
 
@@ -53,14 +53,14 @@
 				"box" : 				{
 					"bgcolor" : [ 0.866666666666667, 0.866666666666667, 0.866666666666667, 1.0 ],
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-3",
 					"maxclass" : "number",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 360.0, 679.0, 35.0, 19.0 ],
+					"patching_rect" : [ 360.0, 679.0, 35.0, 22.0 ],
 					"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 					"triscale" : 0.9
 				}
@@ -85,7 +85,7 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"hidden" : 1,
 					"id" : "obj-5",
 					"linecount" : 2,
@@ -93,7 +93,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 68.0, 634.0, 50.0, 29.0 ],
+					"patching_rect" : [ 68.0, 634.0, 50.0, 35.0 ],
 					"text" : "loadmess 120"
 				}
 
@@ -101,13 +101,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-6",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 126.0, 707.0, 27.0, 19.0 ],
+					"patching_rect" : [ 72.5, 706.0, 31.0, 22.0 ],
 					"text" : "stop"
 				}
 
@@ -115,13 +115,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-7",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 58.0, 707.0, 65.0, 19.0 ],
+					"patching_rect" : [ 72.5, 683.0, 72.0, 22.0 ],
 					"text" : "startwindow"
 				}
 
@@ -129,40 +129,25 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-8",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
 					"numoutlets" : 0,
-					"patching_rect" : [ 24.0, 706.0, 31.0, 19.0 ],
+					"patching_rect" : [ 24.0, 706.0, 35.0, 22.0 ],
 					"text" : "dac~"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"bgcolor" : [ 0.749019607843137, 0.823529411764706, 1.0, 1.0 ],
-					"border" : 1,
-					"bordercolor" : [ 0.0, 0.333333333333333, 0.909803921568627, 1.0 ],
-					"id" : "obj-9",
-					"maxclass" : "panel",
-					"mode" : 0,
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 40.0, 699.0, 121.0, 31.0 ],
-					"rounded" : 12
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-10",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 260.0, 532.0, 544.0, 17.0 ],
+					"patching_rect" : [ 301.0, 532.0, 639.0, 20.0 ],
 					"text" : "set individual detuning (regarding tempered tuning) in cent for each note in the octave: <bank> <program> [<trans> ... ]"
 				}
 
@@ -170,12 +155,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-11",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 161.0, 514.0, 632.0, 17.0 ],
+					"patching_rect" : [ 196.0, 514.0, 720.0, 20.0 ],
 					"text" : "set individual pitch in MIDI cent for each key (0 to 127): <bank> <program> [<pitch> ... ] (the last two given values will be extrapolated)"
 				}
 
@@ -183,7 +168,7 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"hidden" : 1,
 					"id" : "obj-12",
 					"maxclass" : "newobj",
@@ -219,8 +204,9 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-2",
+									"linecount" : 2,
 									"maxclass" : "newobj",
 									"numinlets" : 2,
 									"numoutlets" : 2,
@@ -233,8 +219,9 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-3",
+									"linecount" : 2,
 									"maxclass" : "newobj",
 									"numinlets" : 1,
 									"numoutlets" : 1,
@@ -259,8 +246,9 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-5",
+									"linecount" : 2,
 									"maxclass" : "newobj",
 									"numinlets" : 1,
 									"numoutlets" : 1,
@@ -298,8 +286,9 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-8",
+									"linecount" : 2,
 									"maxclass" : "newobj",
 									"numinlets" : 3,
 									"numoutlets" : 2,
@@ -337,8 +326,9 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-11",
+									"linecount" : 2,
 									"maxclass" : "message",
 									"numinlets" : 2,
 									"numoutlets" : 1,
@@ -351,8 +341,9 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-12",
+									"linecount" : 2,
 									"maxclass" : "newobj",
 									"numinlets" : 3,
 									"numoutlets" : 1,
@@ -365,7 +356,7 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-13",
 									"maxclass" : "newobj",
 									"numinlets" : 1,
@@ -379,8 +370,9 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-14",
+									"linecount" : 2,
 									"maxclass" : "newobj",
 									"numinlets" : 1,
 									"numoutlets" : 1,
@@ -393,7 +385,7 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-15",
 									"maxclass" : "newobj",
 									"numinlets" : 2,
@@ -407,7 +399,7 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-16",
 									"maxclass" : "newobj",
 									"numinlets" : 1,
@@ -421,8 +413,9 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-17",
+									"linecount" : 2,
 									"maxclass" : "newobj",
 									"numinlets" : 1,
 									"numoutlets" : 1,
@@ -435,8 +428,9 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-18",
+									"linecount" : 2,
 									"maxclass" : "newobj",
 									"numinlets" : 3,
 									"numoutlets" : 1,
@@ -449,7 +443,7 @@
 , 							{
 								"box" : 								{
 									"fontname" : "Arial",
-									"fontsize" : 9.0,
+									"fontsize" : 12.0,
 									"id" : "obj-19",
 									"maxclass" : "newobj",
 									"numinlets" : 1,
@@ -682,7 +676,7 @@
 						"originid" : "pat-6"
 					}
 ,
-					"patching_rect" : [ 323.0, 621.0, 84.0, 19.0 ],
+					"patching_rect" : [ 323.0, 621.0, 97.0, 22.0 ],
 					"text" : "p MIDI-keyboard"
 				}
 
@@ -690,13 +684,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-13",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 513.0, 135.0, 19.0 ],
+					"patching_rect" : [ 24.0, 513.0, 150.0, 22.0 ],
 					"text" : "tuning-keys 0 0 3000 3050"
 				}
 
@@ -704,12 +698,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-14",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 562.0, 550.0, 243.0, 17.0 ],
+					"patching_rect" : [ 581.0, 550.0, 280.0, 20.0 ],
 					"text" : "reset to ordinary tempered tuning for given channel"
 				}
 
@@ -717,12 +711,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-15",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 120.0, 550.0, 363.0, 17.0 ],
+					"patching_rect" : [ 140.5, 550.0, 439.0, 20.0 ],
 					"text" : "select tuning bank and program for given channel: <bank> <program> <channel>"
 				}
 
@@ -730,13 +724,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-16",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 487.0, 549.0, 74.0, 19.0 ],
+					"patching_rect" : [ 442.0, 490.0, 82.0, 22.0 ],
 					"text" : "tuning-reset 1"
 				}
 
@@ -744,13 +738,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-17",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 549.0, 95.0, 19.0 ],
+					"patching_rect" : [ 24.0, 549.0, 107.0, 22.0 ],
 					"text" : "tuning-select 0 0 1"
 				}
 
@@ -758,13 +752,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-18",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 531.0, 234.0, 19.0 ],
+					"patching_rect" : [ 24.0, 531.0, 261.0, 22.0 ],
 					"text" : "tuning-octave 0 0 50 0 50 0 50 0 50 0 50 0 50 0"
 				}
 
@@ -772,12 +766,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-19",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 115.0, 487.0, 201.0, 17.0 ],
+					"patching_rect" : [ 115.0, 487.0, 221.0, 20.0 ],
 					"text" : "set resampling method (default is cubic)"
 				}
 
@@ -785,7 +779,7 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-20",
 					"items" : [ "resample", "nearest", ",", "resample", "linear", ",", "resample", "cubic", ",", "resample", "sinc" ],
 					"labelclick" : 1,
@@ -794,19 +788,19 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "int", "", "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 24.0, 485.0, 89.0, 19.0 ]
+					"patching_rect" : [ 24.0, 485.0, 89.0, 22.0 ]
 				}
 
 			}
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-21",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 41.0, 83.0, 219.0, 17.0 ],
+					"patching_rect" : [ 272.0, 66.0, 239.0, 20.0 ],
 					"text" : "FluidSynth home: http://www.fluidsynth.org/"
 				}
 
@@ -814,12 +808,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-22",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 66.0, 67.0, 218.0, 17.0 ],
+					"patching_rect" : [ 21.0, 66.0, 245.0, 20.0 ],
 					"text" : "FluidSynth is written by Peter Hanappe et al."
 				}
 
@@ -832,7 +826,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 422.0, 60.0, 372.0, 20.0 ],
+					"patching_rect" : [ 683.0, 65.0, 372.0, 20.0 ],
 					"text" : "output list of presets: <name> <soundfont> <bank> <program>"
 				}
 
@@ -845,7 +839,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 422.0, 78.0, 488.0, 20.0 ],
+					"patching_rect" : [ 683.0, 83.0, 488.0, 20.0 ],
 					"text" : "output list of presets of given soundfont: <name> <soundfont> <bank> <program>"
 				}
 
@@ -858,7 +852,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 422.0, 132.0, 538.0, 20.0 ],
+					"patching_rect" : [ 683.0, 137.0, 538.0, 20.0 ],
 					"text" : "output 'off' or current chorus parameters: <level> <speed> <depth> <type> <# of units>"
 				}
 
@@ -871,7 +865,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 422.0, 114.0, 505.0, 20.0 ],
+					"patching_rect" : [ 683.0, 119.0, 505.0, 20.0 ],
 					"text" : "output 'off' or current reverb parameters: <level> <room size> <damping> <width>"
 				}
 
@@ -884,7 +878,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 422.0, 42.0, 330.0, 20.0 ],
+					"patching_rect" : [ 683.0, 47.0, 330.0, 20.0 ],
 					"text" : "output list of soundfonts: <stack index> <name> <id>"
 				}
 
@@ -897,7 +891,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 422.0, 96.0, 551.0, 20.0 ],
+					"patching_rect" : [ 683.0, 101.0, 551.0, 20.0 ],
 					"text" : "output selected preset for each channel: <channel> <soundfont> <bank> <program> <preset>"
 				}
 
@@ -905,12 +899,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-29",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 248.0, 647.0, 50.0, 19.0 ],
+					"patching_rect" : [ 248.0, 647.0, 55.0, 22.0 ],
 					"text" : "print info"
 				}
 
@@ -918,13 +912,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-30",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 136.0, 621.0, 122.0, 19.0 ],
+					"patching_rect" : [ 136.0, 621.0, 122.0, 22.0 ],
 					"text" : "route bang"
 				}
 
@@ -938,7 +932,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 59.0, 82.0, 22.0 ],
+					"patching_rect" : [ 588.0, 64.0, 82.0, 22.0 ],
 					"text" : "info presets"
 				}
 
@@ -952,7 +946,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 77.0, 104.0, 22.0 ],
+					"patching_rect" : [ 588.0, 82.0, 104.0, 22.0 ],
 					"text" : "info presets GM"
 				}
 
@@ -966,7 +960,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 131.0, 75.0, 22.0 ],
+					"patching_rect" : [ 588.0, 136.0, 75.0, 22.0 ],
 					"text" : "info chorus"
 				}
 
@@ -980,7 +974,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 113.0, 77.0, 22.0 ],
+					"patching_rect" : [ 588.0, 118.0, 77.0, 22.0 ],
 					"text" : "info reverb"
 				}
 
@@ -994,7 +988,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 41.0, 97.0, 22.0 ],
+					"patching_rect" : [ 588.0, 46.0, 97.0, 22.0 ],
 					"text" : "info soundfonts"
 				}
 
@@ -1008,7 +1002,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 327.0, 95.0, 83.0, 22.0 ],
+					"patching_rect" : [ 588.0, 100.0, 83.0, 22.0 ],
 					"text" : "info channels"
 				}
 
@@ -1016,12 +1010,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-37",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 510.0, 198.0, 98.0, 17.0 ],
+					"patching_rect" : [ 681.0, 206.0, 106.0, 20.0 ],
 					"text" : "print list of presets"
 				}
 
@@ -1029,13 +1023,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-38",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 439.0, 197.0, 68.0, 19.0 ],
+					"patching_rect" : [ 585.0, 205.0, 75.0, 22.0 ],
 					"text" : "print presets"
 				}
 
@@ -1043,12 +1037,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-39",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 527.0, 216.0, 200.0, 17.0 ],
+					"patching_rect" : [ 681.0, 224.0, 227.0, 20.0 ],
 					"text" : "print list of presets of the given soundfont"
 				}
 
@@ -1056,13 +1050,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-40",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 439.0, 215.0, 85.0, 19.0 ],
+					"patching_rect" : [ 585.0, 223.0, 97.0, 22.0 ],
 					"text" : "print presets GM"
 				}
 
@@ -1070,13 +1064,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-41",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 672.0, 441.0, 55.0, 19.0 ],
+					"patching_rect" : [ 354.0, 459.0, 59.0, 22.0 ],
 					"text" : "reverb off"
 				}
 
@@ -1084,13 +1078,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-42",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 708.0, 459.0, 55.0, 19.0 ],
+					"patching_rect" : [ 289.0, 459.0, 61.0, 22.0 ],
 					"text" : "chorus off"
 				}
 
@@ -1098,13 +1092,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-43",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 119.0, 459.0, 112.0, 19.0 ],
+					"patching_rect" : [ 147.0, 459.0, 125.0, 22.0 ],
 					"text" : "chorus 10 0.5 40 0 10"
 				}
 
@@ -1112,13 +1106,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-44",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 654.0, 459.0, 52.0, 19.0 ],
+					"patching_rect" : [ 289.0, 435.0, 61.0, 22.0 ],
 					"text" : "chorus on"
 				}
 
@@ -1126,12 +1120,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-45",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 233.0, 460.0, 420.0, 17.0 ],
+					"patching_rect" : [ 423.0, 460.0, 477.0, 20.0 ],
 					"text" : "set chorus parameters: level, speed, depth, type, number of units or switch chorus on/off"
 				}
 
@@ -1139,13 +1133,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-46",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 459.0, 93.0, 19.0 ],
+					"patching_rect" : [ 24.0, 459.0, 105.0, 22.0 ],
 					"text" : "chorus 2 0.3 8 0 3"
 				}
 
@@ -1153,13 +1147,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-47",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 131.0, 441.0, 105.0, 19.0 ],
+					"patching_rect" : [ 159.0, 441.0, 116.0, 22.0 ],
 					"text" : "reverb 1. 0.8 0.5 0.7"
 				}
 
@@ -1167,12 +1161,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-48",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 506.0, 288.0, 155.0, 17.0 ],
+					"patching_rect" : [ 681.0, 296.0, 176.0, 20.0 ],
 					"text" : "print current chorus parameters"
 				}
 
@@ -1180,13 +1174,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-49",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 439.0, 287.0, 64.0, 19.0 ],
+					"patching_rect" : [ 585.0, 295.0, 71.0, 22.0 ],
 					"text" : "print chorus"
 				}
 
@@ -1194,12 +1188,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-50",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 507.0, 270.0, 155.0, 17.0 ],
+					"patching_rect" : [ 681.0, 278.0, 174.0, 20.0 ],
 					"text" : "print current reverb parameters"
 				}
 
@@ -1207,13 +1201,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-51",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 439.0, 269.0, 65.0, 19.0 ],
+					"patching_rect" : [ 585.0, 277.0, 69.0, 22.0 ],
 					"text" : "print reverb"
 				}
 
@@ -1221,13 +1215,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-52",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 617.0, 441.0, 53.0, 19.0 ],
+					"patching_rect" : [ 354.0, 435.0, 59.0, 22.0 ],
 					"text" : "reverb on"
 				}
 
@@ -1235,12 +1229,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-53",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 238.0, 442.0, 378.0, 17.0 ],
+					"patching_rect" : [ 428.0, 442.0, 425.0, 20.0 ],
 					"text" : "set reverb parameters: level, room size, damping, width or switch reberb on/off"
 				}
 
@@ -1248,13 +1242,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-54",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 441.0, 105.0, 19.0 ],
+					"patching_rect" : [ 24.0, 441.0, 113.0, 22.0 ],
 					"text" : "reverb 0.9 0.2 0 0.5"
 				}
 
@@ -1262,12 +1256,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-55",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 284.0, 405.0, 244.0, 17.0 ],
+					"patching_rect" : [ 293.0, 401.5, 290.0, 20.0 ],
 					"text" : "change soundfont \"generator\" value of given channel"
 				}
 
@@ -1276,7 +1270,7 @@
 				"box" : 				{
 					"bgcolor" : [ 0.866666666666667, 0.866666666666667, 0.866666666666667, 1.0 ],
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"format" : 6,
 					"id" : "obj-56",
 					"maxclass" : "flonum",
@@ -1284,7 +1278,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 68.0, 423.0, 48.0, 19.0 ],
+					"patching_rect" : [ 68.0, 423.0, 48.0, 22.0 ],
 					"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 					"triscale" : 0.9
 				}
@@ -1293,13 +1287,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-57",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 423.0, 42.0, 19.0 ],
+					"patching_rect" : [ 24.0, 423.0, 48.0, 22.0 ],
 					"text" : "gain $1"
 				}
 
@@ -1307,13 +1301,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-58",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 247.0, 157.0, 50.0, 19.0 ],
+					"patching_rect" : [ 368.0, 490.0, 60.0, 22.0 ],
 					"text" : "unload all"
 				}
 
@@ -1333,12 +1327,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-60",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 116.0, 140.0, 73.0, 17.0 ],
+					"patching_rect" : [ 154.5, 141.0, 87.0, 20.0 ],
 					"text" : "load soundfont"
 				}
 
@@ -1346,13 +1340,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-61",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 88.0, 139.0, 26.0, 19.0 ],
+					"patching_rect" : [ 99.0, 139.0, 31.0, 22.0 ],
 					"text" : "load"
 				}
 
@@ -1360,12 +1354,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-62",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 22.0, 99.0, 275.0, 17.0 ],
+					"patching_rect" : [ 22.0, 88.0, 319.0, 20.0 ],
 					"text" : "Max/MSP integration by Norbert Schnell for Roland Cahen"
 				}
 
@@ -1373,12 +1367,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-63",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 524.0, 252.0, 272.0, 17.0 ],
+					"patching_rect" : [ 681.0, 260.0, 310.0, 20.0 ],
 					"text" : "print list of modulator values for given channel (default 1)"
 				}
 
@@ -1386,13 +1380,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-64",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 439.0, 251.0, 82.0, 19.0 ],
+					"patching_rect" : [ 585.0, 259.0, 93.0, 22.0 ],
 					"text" : "print generators"
 				}
 
@@ -1401,7 +1395,7 @@
 				"box" : 				{
 					"bgcolor" : [ 0.866666666666667, 0.866666666666667, 0.866666666666667, 1.0 ],
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"format" : 6,
 					"id" : "obj-65",
 					"maxclass" : "flonum",
@@ -1409,7 +1403,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 91.0, 404.0, 45.0, 19.0 ],
+					"patching_rect" : [ 91.0, 404.0, 45.0, 22.0 ],
 					"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 					"triscale" : 0.9
 				}
@@ -1432,13 +1426,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-67",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 405.0, 65.0, 19.0 ],
+					"patching_rect" : [ 24.0, 405.0, 75.0, 22.0 ],
 					"text" : "mod 51 $1 1"
 				}
 
@@ -1446,12 +1440,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-68",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 140.0, 380.0, 252.0, 17.0 ],
+					"patching_rect" : [ 140.0, 380.0, 302.0, 20.0 ],
 					"text" : "MIDI pitch bend wheel range in semitones with channel"
 				}
 
@@ -1459,13 +1453,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-69",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 79.0, 379.0, 59.0, 19.0 ],
+					"patching_rect" : [ 79.0, 379.0, 67.0, 22.0 ],
 					"text" : "wheel 12 1"
 				}
 
@@ -1473,13 +1467,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-70",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 379.0, 53.0, 19.0 ],
+					"patching_rect" : [ 24.0, 379.0, 60.0, 22.0 ],
 					"text" : "wheel 2 1"
 				}
 
@@ -1488,7 +1482,7 @@
 				"box" : 				{
 					"bgcolor" : [ 0.866666666666667, 0.866666666666667, 0.866666666666667, 1.0 ],
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"format" : 6,
 					"id" : "obj-71",
 					"maxclass" : "flonum",
@@ -1496,7 +1490,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 79.0, 361.0, 45.0, 19.0 ],
+					"patching_rect" : [ 86.0, 361.0, 45.0, 22.0 ],
 					"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 					"triscale" : 0.9
 				}
@@ -1505,12 +1499,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-72",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 272.0, 362.0, 395.0, 17.0 ],
+					"patching_rect" : [ 305.5, 362.0, 469.0, 20.0 ],
 					"text" : "MIDI pitch bend with value (use float argument to use LSB of 14-bit value) and channel"
 				}
 
@@ -1526,7 +1520,7 @@
 					"orientation" : 1,
 					"outlettype" : [ "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 126.0, 361.0, 144.0, 15.0 ],
+					"patching_rect" : [ 138.0, 361.0, 144.0, 15.0 ],
 					"size" : 64.0
 				}
 
@@ -1548,13 +1542,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-75",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 361.0, 53.0, 19.0 ],
+					"patching_rect" : [ 24.0, 361.0, 62.0, 22.0 ],
 					"text" : "bend $1 1"
 				}
 
@@ -1562,12 +1556,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-76",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 59.0, 265.0, 244.0, 17.0 ],
+					"patching_rect" : [ 59.0, 265.0, 285.0, 20.0 ],
 					"text" : "stop sound and reset all MIDI controllers and effects"
 				}
 
@@ -1587,13 +1581,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-78",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 299.0, 45.0, 19.0 ],
+					"patching_rect" : [ 24.0, 299.0, 52.0, 22.0 ],
 					"text" : "mute $1"
 				}
 
@@ -1601,13 +1595,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-79",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 91.0, 299.0, 33.0, 19.0 ],
+					"patching_rect" : [ 91.0, 299.0, 35.0, 22.0 ],
 					"text" : "mute"
 				}
 
@@ -1615,13 +1609,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-80",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 129.0, 299.0, 41.0, 19.0 ],
+					"patching_rect" : [ 129.0, 299.0, 49.0, 22.0 ],
 					"text" : "unmute"
 				}
 
@@ -1629,13 +1623,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-81",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 343.0, 80.0, 19.0 ],
+					"patching_rect" : [ 24.0, 343.0, 88.0, 22.0 ],
 					"text" : "control 91 $1 1"
 				}
 
@@ -1643,12 +1637,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-82",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 252.0, 344.0, 284.0, 17.0 ],
+					"patching_rect" : [ 282.0, 344.0, 337.0, 20.0 ],
 					"text" : "MIDI control change with contoller number, value and channel"
 				}
 
@@ -1656,12 +1650,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-83",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 523.0, 180.0, 112.0, 17.0 ],
+					"patching_rect" : [ 681.0, 188.0, 125.0, 20.0 ],
 					"text" : "print list of soundfonts"
 				}
 
@@ -1669,12 +1663,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-84",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 80.0, 176.0, 83.0, 17.0 ],
+					"patching_rect" : [ 111.0, 177.0, 98.0, 20.0 ],
 					"text" : "reload soundfont"
 				}
 
@@ -1682,13 +1676,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-85",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 175.0, 54.0, 19.0 ],
+					"patching_rect" : [ 24.0, 175.0, 65.0, 22.0 ],
 					"text" : "reload GM"
 				}
 
@@ -1696,13 +1690,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-86",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 157.0, 54.0, 19.0 ],
+					"patching_rect" : [ 24.0, 157.0, 67.0, 22.0 ],
 					"text" : "unload GM"
 				}
 
@@ -1710,12 +1704,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-87",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 147.0, 238.0, 262.0, 17.0 ],
+					"patching_rect" : [ 180.0, 238.0, 312.0, 20.0 ],
 					"text" : "select soundfont, bank and preset for given MIDI channel"
 				}
 
@@ -1724,14 +1718,14 @@
 				"box" : 				{
 					"bgcolor" : [ 0.866666666666667, 0.866666666666667, 0.866666666666667, 1.0 ],
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-88",
 					"maxclass" : "number",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 111.0, 237.0, 35.0, 19.0 ],
+					"patching_rect" : [ 111.0, 237.0, 35.0, 22.0 ],
 					"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 					"triscale" : 0.9
 				}
@@ -1740,13 +1734,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-89",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 237.0, 85.0, 19.0 ],
+					"patching_rect" : [ 24.0, 237.0, 99.0, 22.0 ],
 					"text" : "select GM 0 $1 1"
 				}
 
@@ -1754,12 +1748,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-90",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 133.0, 220.0, 180.0, 17.0 ],
+					"patching_rect" : [ 166.0, 220.0, 211.0, 20.0 ],
 					"text" : "select program for given MIDI channel"
 				}
 
@@ -1767,13 +1761,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-91",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 263.0, 33.0, 19.0 ],
+					"patching_rect" : [ 24.0, 263.0, 35.0, 22.0 ],
 					"text" : "reset"
 				}
 
@@ -1781,13 +1775,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-92",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 281.0, 32.0, 19.0 ],
+					"patching_rect" : [ 24.0, 281.0, 37.0, 22.0 ],
 					"text" : "panic"
 				}
 
@@ -1795,13 +1789,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-93",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 439.0, 179.0, 82.0, 19.0 ],
+					"patching_rect" : [ 585.0, 187.0, 94.0, 22.0 ],
 					"text" : "print soundfonts"
 				}
 
@@ -1809,13 +1803,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-94",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 439.0, 233.0, 72.0, 19.0 ],
+					"patching_rect" : [ 585.0, 241.0, 83.0, 22.0 ],
 					"text" : "print channels"
 				}
 
@@ -1823,13 +1817,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-95",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 325.0, 73.0, 19.0 ],
+					"patching_rect" : [ 24.0, 323.0, 82.0, 22.0 ],
 					"text" : "note 69 127 1"
 				}
 
@@ -1872,14 +1866,14 @@
 				"box" : 				{
 					"bgcolor" : [ 0.866666666666667, 0.866666666666667, 0.866666666666667, 1.0 ],
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-98",
 					"maxclass" : "number",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 97.0, 219.0, 35.0, 19.0 ],
+					"patching_rect" : [ 111.0, 219.0, 35.0, 22.0 ],
 					"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 					"triscale" : 0.9
 				}
@@ -1889,14 +1883,14 @@
 				"box" : 				{
 					"bgcolor" : [ 0.866666666666667, 0.866666666666667, 0.866666666666667, 1.0 ],
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-99",
 					"maxclass" : "number",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 79.0, 201.0, 35.0, 19.0 ],
+					"patching_rect" : [ 111.0, 201.0, 35.0, 22.0 ],
 					"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 					"triscale" : 0.9
 				}
@@ -1905,13 +1899,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-100",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 219.0, 71.0, 19.0 ],
+					"patching_rect" : [ 24.0, 219.0, 80.0, 22.0 ],
 					"text" : "program $1 1"
 				}
 
@@ -1919,13 +1913,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-101",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 201.0, 53.0, 19.0 ],
+					"patching_rect" : [ 24.0, 201.0, 61.0, 22.0 ],
 					"text" : "bank $1 1"
 				}
 
@@ -1933,13 +1927,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-102",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 99.0, 325.0, 61.0, 19.0 ],
+					"patching_rect" : [ 106.0, 323.0, 69.0, 22.0 ],
 					"text" : "note 69 0 1"
 				}
 
@@ -1947,13 +1941,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-103",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 24.0, 139.0, 62.0, 19.0 ],
+					"patching_rect" : [ 24.0, 139.0, 73.0, 22.0 ],
 					"text" : "load GM.sf2"
 				}
 
@@ -1975,12 +1969,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-105",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 148.0, 595.0, 447.0, 17.0 ],
+					"patching_rect" : [ 148.0, 595.0, 497.0, 20.0 ],
 					"text" : "fluidsynth~ [<polyphony (def: 256)> [<# of MIDI channels (def: 16)>]] [<soundfont filename>]"
 				}
 
@@ -1988,12 +1982,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-106",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 148.0, 582.0, 44.0, 17.0 ],
+					"patching_rect" : [ 148.0, 582.0, 47.0, 20.0 ],
 					"text" : "syntax:"
 				}
 
@@ -2001,12 +1995,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-107",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 115.0, 202.0, 162.0, 17.0 ],
+					"patching_rect" : [ 148.0, 202.0, 193.0, 20.0 ],
 					"text" : "select bank for given MIDI channel"
 				}
 
@@ -2014,12 +2008,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-108",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 80.0, 158.0, 165.0, 17.0 ],
+					"patching_rect" : [ 118.5, 159.0, 196.0, 20.0 ],
 					"text" : "remove soundfont or all soundfonts"
 				}
 
@@ -2027,12 +2021,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-109",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 513.0, 234.0, 239.0, 17.0 ],
+					"patching_rect" : [ 681.0, 242.0, 284.0, 20.0 ],
 					"text" : "print soundfont, bank and program for each channel"
 				}
 
@@ -2040,12 +2034,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-110",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 162.0, 326.0, 229.0, 17.0 ],
+					"patching_rect" : [ 208.5, 326.0, 262.0, 20.0 ],
 					"text" : "MIDI note on/off with pitch, velocity and channel"
 				}
 
@@ -2053,12 +2047,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-111",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 172.0, 300.0, 112.0, 17.0 ],
+					"patching_rect" : [ 172.0, 300.0, 134.0, 20.0 ],
 					"text" : "mute and unmute synth"
 				}
 
@@ -2066,12 +2060,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-112",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 58.0, 282.0, 301.0, 17.0 ],
+					"patching_rect" : [ 58.0, 282.0, 351.0, 20.0 ],
 					"text" : "stop sound and reset all MIDI controllers, modulators and effects"
 				}
 
@@ -2084,7 +2078,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 73.0, 7.0, 140.0, 33.0 ],
+					"patching_rect" : [ 22.0, 11.0, 140.0, 33.0 ],
 					"text" : "fluidsynth~"
 				}
 
@@ -2097,7 +2091,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 73.0, 40.0, 215.0, 20.0 ],
+					"patching_rect" : [ 22.0, 44.0, 215.0, 20.0 ],
 					"text" : "FluidSynth sound font synthesizer"
 				}
 
@@ -2105,12 +2099,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-115",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 118.0, 424.0, 122.0, 17.0 ],
+					"patching_rect" : [ 118.0, 424.0, 136.0, 20.0 ],
 					"text" : "linear overall gain factor"
 				}
 
@@ -2118,12 +2112,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-116",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 153.0, 648.0, 75.0, 17.0 ],
+					"patching_rect" : [ 153.0, 648.0, 89.0, 20.0 ],
 					"text" : "bang after load"
 				}
 
@@ -2131,12 +2125,12 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-117",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 170.0, 176.0, 219.0, 17.0 ],
+					"patching_rect" : [ 208.5, 177.0, 259.0, 20.0 ],
 					"text" : "(Note: Soundfonts can specified by name or id)"
 				}
 
@@ -2144,24 +2138,13 @@
 , 			{
 				"box" : 				{
 					"fontname" : "Arial",
-					"fontsize" : 9.0,
+					"fontsize" : 12.0,
 					"id" : "obj-118",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 415.0, 682.0, 66.0, 17.0 ],
+					"patching_rect" : [ 415.0, 682.0, 79.0, 20.0 ],
 					"text" : "MIDI channel"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-119",
-					"maxclass" : "fpic",
-					"numinlets" : 1,
-					"numoutlets" : 1,
-					"outlettype" : [ "jit_matrix" ],
-					"patching_rect" : [ 10.0, 7.0, 56.0, 76.0 ]
 				}
 
 			}
@@ -2303,7 +2286,7 @@
 				"patchline" : 				{
 					"destination" : [ "obj-12", 2 ],
 					"hidden" : 1,
-					"order" : 1,
+					"order" : 0,
 					"source" : [ "obj-3", 0 ]
 				}
 
@@ -2312,7 +2295,7 @@
 				"patchline" : 				{
 					"destination" : [ "obj-2", 0 ],
 					"hidden" : 1,
-					"order" : 0,
+					"order" : 1,
 					"source" : [ "obj-3", 0 ]
 				}
 
