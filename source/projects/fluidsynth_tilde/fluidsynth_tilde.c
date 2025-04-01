@@ -24,7 +24,7 @@ typedef struct {
     double roomsize;
     double damping;
     double width;
-} t_fx_reverb;
+} t_fsm_fx_reverb;
 
 typedef struct {
     int fx_group;
@@ -33,7 +33,7 @@ typedef struct {
     double depth_ms;
     int nr;
     int type;
-} t_fx_chorus;
+} t_fsm_fx_chorus;
 
 /*----------------------------------------------------------------------------*/
 // dsp
@@ -45,8 +45,8 @@ void fsm_dsp64(t_fsm* x, t_object* dsp64, short* count,
 }
 
 void fsm_perform64(t_fsm* x, t_object* dsp64, double** ins,
-                        long numins, double** outs, long numouts,
-                        long sampleframes, long flags, void* userparam)
+                   long numins, double** outs, long numouts,
+                   long sampleframes, long flags, void* userparam)
 {
     t_double* outL = outs[0];
     t_double* outR = outs[1];
@@ -563,7 +563,7 @@ void fsm_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 void fsm_reverb(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int res;
-    t_fx_reverb r;
+    t_fsm_fx_reverb r;
     r.fx_group = -1;
 
     if (argc == 0) {
@@ -658,7 +658,7 @@ exception:
 void fsm_chorus(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int res;
-    t_fx_chorus c;
+    t_fsm_fx_chorus c;
 
     if (argc == 0) {
         fluid_synth_chorus_on(x->synth, c.fx_group, 1);
@@ -856,6 +856,7 @@ int fluid_synth_count_audio_groups (fluid_synth_t *synth)
 int fluid_synth_count_effects_channels (fluid_synth_t *synth)
 */
 
+
 void fsm_tuning_octave(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     t_symbol* name;
@@ -890,8 +891,7 @@ void fsm_tuning_octave(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     for (; i < 12; n++)
         pitch[i] = 0.0;
 
-    // fluid_synth_create_octave_tuning(x->synth, tuning_bank, tuning_prog,
-    //                                  name->s_name, pitch);
+    fluid_synth_activate_octave_tuning(x->synth, tuning_bank, tuning_prog, name->s_name, pitch, TRUE);
 }
 
 void fsm_tuning_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
@@ -914,8 +914,7 @@ void fsm_tuning_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     else if (channel > fluid_synth_count_midi_channels(x->synth))
         channel = fluid_synth_count_midi_channels(x->synth);
 
-    // fluid_synth_select_tuning(x->synth, channel - 1, tuning_bank,
-    // tuning_prog);
+    fluid_synth_activate_tuning(x->synth, channel - 1, tuning_bank, tuning_prog, TRUE);
 }
 
 void fsm_tuning_reset(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
@@ -930,18 +929,15 @@ void fsm_tuning_reset(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     else if (channel > fluid_synth_count_midi_channels(x->synth))
         channel = fluid_synth_count_midi_channels(x->synth);
 
-    // fluid_synth_reset_tuning(x->synth, channel - 1);
-    fluid_synth_deactivate_tuning(x->synth, channel-1, FALSE);
+    fluid_synth_deactivate_tuning(x->synth, channel - 1, FALSE);
 }
 
 /* more tuning ??
-fluid_synth_create_key_tuning (fluid_synth_t *synth, int tuning_bank, int
-tuning_prog, char *name, double *pitch) fluid_synth_tune_notes (fluid_synth_t
-*synth, int tuning_bank, int tuning_prog, int len, int *keys, double *pitch,
-int apply) fluid_synth_tuning_iteration_start (fluid_synth_t *synth)
-fluid_synth_tuning_iteration_next (fluid_synth_t *synth, int *bank, int *prog)
-fluid_synth_tuning_dump (fluid_synth_t *synth, int bank, int prog, char *name,
-int len, double *pitch)
+int fluid_synth_activate_key_tuning(fluid_synth_t *synth, int bank, int prog, const char *name, const double *pitch, int apply);
+int fluid_synth_tune_notes(fluid_synth_t *synth, int bank, int prog, int len, const int *keys, const double *pitch, int apply);
+void fluid_synth_tuning_iteration_start(fluid_synth_t *synth);
+int fluid_synth_tuning_iteration_next(fluid_synth_t *synth, int *bank, int *prog);
+int fluid_synth_tuning_dump(fluid_synth_t *synth, int bank, int prog, char *name, int len, double *pitch);
 */
 
 void fsm_version(t_fsm* x)
@@ -953,9 +949,6 @@ void fsm_version(t_fsm* x)
     fsm_post(x, "  Max/MSP integration by Norbert Schnell IMTR IRCAM - Centre "
          "Pompidou");
 }
-
-// extern fluid_gen_info_t fluid_gen_info[];
-
 
 
 void fsm_print_soundfonts(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
@@ -1119,7 +1112,7 @@ void fsm_print_gain(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 void fsm_print_reverb(t_fsm* x, t_symbol* s, short argc,
                            t_atom* argv)
 {
-    t_fx_reverb r;
+    t_fsm_fx_reverb r;
     r.fx_group = -1;
 
     fluid_synth_get_reverb_group_roomsize(x->synth, r.fx_group, &r.roomsize);
@@ -1141,7 +1134,7 @@ void fsm_print_reverb(t_fsm* x, t_symbol* s, short argc,
 void fsm_print_chorus(t_fsm* x, t_symbol* s, short argc,
                            t_atom* argv)
 {
-    t_fx_chorus c;
+    t_fsm_fx_chorus c;
     c.fx_group = -1;
 
     if (x->chorus != 0) {
@@ -1322,7 +1315,7 @@ void fsm_info_gain(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 
 void fsm_info_reverb(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
-    t_fx_reverb r;
+    t_fsm_fx_reverb r;
     r.fx_group = -1;
 
     if (x->reverb != 0) {
@@ -1347,7 +1340,7 @@ void fsm_info_reverb(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 
 void fsm_info_chorus(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
-    t_fx_chorus c;
+    t_fsm_fx_chorus c;
     c.fx_group = -1;
 
     if (x->chorus != 0) {

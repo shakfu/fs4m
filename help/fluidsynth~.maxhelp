@@ -703,7 +703,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 581.0, 550.0, 280.0, 20.0 ],
+					"patching_rect" : [ 696.0, 550.0, 280.0, 20.0 ],
 					"text" : "reset to ordinary tempered tuning for given channel"
 				}
 
@@ -730,7 +730,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 442.0, 490.0, 82.0, 22.0 ],
+					"patching_rect" : [ 590.5, 549.0, 82.0, 22.0 ],
 					"text" : "tuning-reset 1"
 				}
 
