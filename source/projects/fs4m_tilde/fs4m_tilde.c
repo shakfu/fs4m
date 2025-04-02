@@ -12,8 +12,6 @@
 
 #include <fluidsynth.h>
 
-#define BUFFERED 0
-
 #define fm_error(x, ...) object_error((t_object*)(x), __VA_ARGS__);
 #define fm_post(x, ...) object_post((t_object*)(x), __VA_ARGS__);
 
@@ -25,6 +23,7 @@ typedef struct _fm
     fluid_synth_t *synth;
     double * left_buffer;
     double * right_buffer;
+    long out_maxsize;
     int sfont_id;
     int mute;
 } t_fm;
@@ -56,7 +55,6 @@ void ext_main(void* r)
     class_addmethod(c, (method)fm_mute,     "mute",     0);
     class_addmethod(c, (method)fm_noteon,   "on",       0);
     class_addmethod(c, (method)fm_noteoff,  "off",      0);
-    // class_addmethod(c, (method)fm_float, "float",    A_FLOAT, 0);
     class_addmethod(c, (method)fm_load,     "load",     A_SYM,  0);
     class_addmethod(c, (method)fm_dsp64,    "dsp64",    A_CANT, 0);
     class_addmethod(c, (method)fm_assist,   "assist",   A_CANT, 0);
@@ -71,13 +69,15 @@ void* fm_new(t_symbol* s, long argc, t_atom* argv)
     t_fm* x = (t_fm*)object_alloc(fm_class);
 
     if (x) {
-        dsp_setup((t_pxobject*)x, 1); // use 0 if you don't need inlets
+        dsp_setup((t_pxobject*)x, 0); // use 0 if you don't need inlets
+        // dsp_setup((t_pxobject*)x, 1); // use 0 if you don't need inlets
         outlet_new((t_pxobject*)x, "signal");
         outlet_new((t_pxobject*)x, "signal");
         x->settings = NULL;
         x->synth = NULL;
         x->left_buffer = NULL;
         x->right_buffer = NULL;
+        x->out_maxsize = 0;
         x->mute = 0;
         fm_init(x);
     }
@@ -138,8 +138,18 @@ void fm_init(t_fm* x)
 
 void fm_free(t_fm* x)
 {
-    delete_fluid_synth(x->synth);
-    delete_fluid_settings(x->settings);
+    if (x->synth != NULL)
+        delete_fluid_synth(x->synth);
+
+    if (x->settings != NULL)
+        delete_fluid_settings(x->settings);
+
+    if(x->left_buffer != NULL)
+        sysmem_freeptr(x->left_buffer);
+  
+    if(x->right_buffer != NULL)
+        sysmem_freeptr(x->right_buffer);
+  
     dsp_free((t_pxobject*)x);
 }
 
@@ -206,21 +216,21 @@ void fm_bang(t_fm* x)
     }
 }
 
-#if BUFFERED == 1
-
 void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
 {
-    post("buffered audio processing");
     fluid_settings_setnum(x->settings, "synth.sample-rate", samplerate);
 
-    sysmem_freeptr(x->left_buffer);
-    sysmem_freeptr(x->right_buffer);
+    if(x->out_maxsize < maxvectorsize) {
+        fm_post(x, "buffers allocated");
 
-    x->left_buffer = (double*)sysmem_newptr(sizeof(double) * maxvectorsize);
-    x->right_buffer = (double*)sysmem_newptr(sizeof(double) * maxvectorsize);
+        x->left_buffer = (double*)sysmem_newptrclear(sizeof(double) * maxvectorsize);
+        x->right_buffer = (double*)sysmem_newptrclear(sizeof(double) * maxvectorsize);
 
-    memset(x->left_buffer, 0.f, sizeof(double) * maxvectorsize);
-    memset(x->right_buffer, 0.f, sizeof(double) * maxvectorsize);
+        // x->left_buffer = (double*)sysmem_resizeptrclear(x->left_buffer, sizeof(double) * maxvectorsize);
+        // x->right_buffer = (double*)sysmem_resizeptrclear(x->right_buffer, sizeof(double) * maxvectorsize);
+
+        x->out_maxsize = maxvectorsize;
+    }
 
     object_method(dsp64, gensym("dsp_add64"), x, fm_perform64, 0, NULL);
 }
@@ -228,57 +238,23 @@ void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long ma
 
 void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
-    double* bufL = x->left_buffer;
-    double* bufR = x->right_buffer;
+    double* left_out = outs[0];
+    double* right_out = outs[1];
     int n = (int)sampleframes;
-    // double* dry[2];
-    // dry[0] = bufL;
-    // dry[1] = bufR;
 
     if (x->mute == 0) {
         
-        fluid_synth_write_float(x->synth, n, bufL, 0, 1, bufR, 0, 1);
-        // fluid_synth_process(x->synth, n, 0, NULL, 2, dry);
+        fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
+
         for (int i = 0; i < n; i++) {
-            outs[0][i] = *bufL++;
-            outs[1][i] = *bufR++;
+            left_out[i] = x->left_buffer[i];
+            right_out[i] = x->right_buffer[i];
         }
 
     } else {
         for (int i = 0; i < n; i++) {
-            outs[0][i] = outs[1][i]= 0.0;
+            left_out[i] = right_out[i]= 0.0;
         }
     }
 }
-
-#else
-
-void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
-{
-    fluid_settings_setnum(x->settings, "synth.sample-rate", samplerate);
-
-    object_method(dsp64, gensym("dsp_add64"), x, fm_perform64, 0, NULL);
-}
-
-
-void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
-{
-    t_double* outL = outs[0]; // we get audio for each outlet of the object from the **outs argument
-    t_double* outR = outs[1];
-    int n = (int)sampleframes;
-
-
-    if (x->mute == 0) {
-        fluid_synth_write_float(x->synth, n, outL, 0, 1, outR, 0, 1);
-
-        // fluid_synth_process(x->synth, n, 0, NULL, 2, outs);
-
-    } else {
-        for (int i = 0; i < n; i++) {
-            outL[i] = outR[i] = 0.0;
-        }
-    }
-}
-
-#endif
 

@@ -1,5 +1,5 @@
-#include "fluidsynth_tilde.h"
-#include "fluidsynth_tilde_gen.h"
+#include "fsm_tilde.h"
+#include "fsm_tilde_gen.h"
 
 /*----------------------------------------------------------------------------*/
 // core struct
@@ -14,6 +14,7 @@ struct t_fsm {
     int mute;
     double* left_buffer;
     double* right_buffer;
+    long out_maxsize;
     void* outlet;
 };
 
@@ -40,27 +41,45 @@ typedef struct {
 /*----------------------------------------------------------------------------*/
 // dsp
 
-void fsm_dsp64(t_fsm* x, t_object* dsp64, short* count, double samplerate,
-               long maxvectorsize, long flags)
+void fsm_dsp64(t_fsm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
 {
+    fluid_settings_setnum(x->settings, "synth.sample-rate", samplerate);
+
+    if(x->out_maxsize < maxvectorsize) {
+        sysmem_freeptr(x->left_buffer);
+        sysmem_freeptr(x->right_buffer);
+
+        x->left_buffer = (double*)sysmem_newptr(sizeof(double) * maxvectorsize);
+        x->right_buffer = (double*)sysmem_newptr(sizeof(double) * maxvectorsize);
+
+        memset(x->left_buffer, 0.f, sizeof(double) * maxvectorsize);
+        memset(x->right_buffer, 0.f, sizeof(double) * maxvectorsize);
+
+        x->out_maxsize = maxvectorsize;
+    }
+
     object_method(dsp64, gensym("dsp_add64"), x, fsm_perform64, 0, NULL);
 }
 
-void fsm_perform64(t_fsm* x, t_object* dsp64, double** ins, long numins,
-                   double** outs, long numouts, long sampleframes, long flags,
-                   void* userparam)
 
+void fsm_perform64(t_fsm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
-    t_double* outL = outs[0];
-    t_double* outR = outs[1];
+    double* left_out = outs[0];
+    double* right_out = outs[1];
     int n = (int)sampleframes;
 
     if (x->mute == 0) {
-        fluid_synth_write_float(x->synth, n, outL, 0, 1, outR, 0, 1);
-        post("out: %f", *outL);
+        
+        fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
+
+        for (int i = 0; i < n; i++) {
+            left_out[i] = x->left_buffer[i];
+            right_out[i] = x->right_buffer[i];
+        }
+
     } else {
         for (int i = 0; i < n; i++) {
-            outL[i] = outR[i] = 0.0;
+            left_out[i] = right_out[i]= 0.0;
         }
     }
 }
@@ -787,37 +806,42 @@ void fsm_set_gain(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 
 void fsm_set_resampling_method(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
+    int ip = 0;
+
     if (argc > 0) {
         if (is_number(argv)) {
-            int ip = (int)atom_getlong(argv);
+            ip = (int)atom_getlong(argv);
 
-            if (ip == 0)
+            if (ip == 0) {
                 fluid_synth_set_interp_method(x->synth, -1, FLUID_INTERP_NONE);
-            else if (ip < 3)
-                fluid_synth_set_interp_method(x->synth, -1,
-                                              FLUID_INTERP_LINEAR);
-            else if (ip < 6)
-                fluid_synth_set_interp_method(x->synth, -1,
-                                              FLUID_INTERP_4THORDER);
-            else
-                fluid_synth_set_interp_method(x->synth, -1,
-                                              FLUID_INTERP_7THORDER);
+            }
+            else if (ip < 3) {
+                fluid_synth_set_interp_method(x->synth, -1, FLUID_INTERP_LINEAR);
+            }
+            else if (ip < 6) {
+                fluid_synth_set_interp_method(x->synth, -1, FLUID_INTERP_4THORDER);
+            }
+            else {
+                fluid_synth_set_interp_method(x->synth, -1, FLUID_INTERP_7THORDER);
+            }
         } else if (is_symbol(argv)) {
             t_symbol* sym = atom_getsym(argv);
 
-            if (sym == gensym("nearest"))
+            if (sym == gensym("nearest")) {
                 fluid_synth_set_interp_method(x->synth, -1, FLUID_INTERP_NONE);
-            else if (sym == gensym("linear"))
-                fluid_synth_set_interp_method(x->synth, -1,
-                                              FLUID_INTERP_LINEAR);
-            else if (sym == gensym("cubic"))
-                fluid_synth_set_interp_method(x->synth, -1,
-                                              FLUID_INTERP_4THORDER);
-            else if (sym == gensym("sinc"))
-                fluid_synth_set_interp_method(x->synth, -1,
-                                              FLUID_INTERP_7THORDER);
-            else
+            }
+            else if (sym == gensym("linear")) {
+                fluid_synth_set_interp_method(x->synth, -1, FLUID_INTERP_LINEAR);
+            }
+            else if (sym == gensym("cubic")) {
+                fluid_synth_set_interp_method(x->synth, -1, FLUID_INTERP_4THORDER);
+            }
+            else if (sym == gensym("sinc")) {
+                fluid_synth_set_interp_method(x->synth, -1, FLUID_INTERP_7THORDER);
+            }
+            else {
                 fsm_error(x, "undefined resampling method: %s", sym->s_name);
+            }
         }
     }
 }
@@ -1408,11 +1432,12 @@ void* fsm_new(t_symbol* s, long argc, t_atom* argv)
 
     x->synth = NULL;
     x->settings = new_fluid_settings();
+    x->left_buffer = NULL;
+    x->right_buffer = NULL;
+    x->out_maxsize = 0;
     x->reverb = 0;
     x->chorus = 0;
     x->mute = 0;
-    x->left_buffer = NULL;
-    x->right_buffer = NULL;
 
     if (argc > 0 && is_number(argv)) {
         polyphony = get_number_as_int(argv);
@@ -1467,13 +1492,19 @@ void fsm_free(t_fsm* x)
     if (x->settings != NULL)
         delete_fluid_settings(x->settings);
 
+    if(x->left_buffer != NULL)
+        sysmem_freeptr(x->left_buffer);
+  
+    if(x->right_buffer != NULL)
+        sysmem_freeptr(x->right_buffer);
+  
     dsp_free((t_pxobject*)x);
 }
 
 // clang-format off
 void ext_main(void* r)
 {
-    t_class* c = class_new("fluidsynth~", 
+    t_class* c = class_new("fsm~", 
         (method)fsm_new, 
         (method)fsm_free, 
         (long)sizeof(t_fsm), 0L, A_GIMME, 0);

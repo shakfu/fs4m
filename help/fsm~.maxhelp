@@ -2131,7 +2131,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "signal", "signal", "anything" ],
 					"patching_rect" : [ 24.0, 581.0, 122.0, 22.0 ],
-					"text" : "fluidsynth~"
+					"text" : "fsm~"
 				}
 
 			}
@@ -2144,7 +2144,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 148.0, 595.0, 497.0, 20.0 ],
-					"text" : "fluidsynth~ [<polyphony (def: 256)> [<# of MIDI channels (def: 16)>]] [<soundfont filename>]"
+					"text" : "fsm~ [<polyphony (def: 256)> [<# of MIDI channels (def: 16)>]] [<soundfont filename>]"
 				}
 
 			}
@@ -2248,7 +2248,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 22.0, 11.0, 140.0, 33.0 ],
-					"text" : "fluidsynth~"
+					"text" : "fsm~"
 				}
 
 			}
@@ -2961,7 +2961,7 @@
  ],
 		"originid" : "pat-4",
 		"dependency_cache" : [ 			{
-				"name" : "fluidsynth~.mxo",
+				"name" : "fsm~.mxo",
 				"type" : "iLaX"
 			}
  ],
