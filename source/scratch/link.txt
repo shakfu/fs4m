@@ -1,0 +1,29 @@
+"-framework AppKit"
+"-framework Carbon"
+"-framework Foundation"
+"-framework CoreFoundation"
+"-framework CoreAudio"
+"-framework AudioToolbox"
+"-framework AudioUnit"
+"-framework CoreMIDI"
+"-framework CoreServices"
+-lfluidsynth
+-lsndfile
+-lm
+-lgthread-2.0
+-lglib-2.0
+-lintl
+-liconv
+-lpcre2-8
+-pthread
+-lsndfile 
+-lmp3lame
+-lFLAC
+-lvorbisenc
+-lvorbis
+-logg
+-lopus
+-lmpg123
+-lportaudio 
+-lreadline
+-lncurses

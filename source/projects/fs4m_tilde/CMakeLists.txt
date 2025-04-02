@@ -38,5 +38,4 @@ target_link_libraries(
 	-lfluidsynth
 )
 
-
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../max-sdk-base/script/max-posttarget.cmake)

@@ -12,6 +12,8 @@
 
 #include <fluidsynth.h>
 
+#define BUFFERED 0
+
 #define fm_error(x, ...) object_error((t_object*)(x), __VA_ARGS__);
 #define fm_post(x, ...) object_post((t_object*)(x), __VA_ARGS__);
 
@@ -21,6 +23,8 @@ typedef struct _fm
 
     fluid_settings_t *settings;
     fluid_synth_t *synth;
+    double * left_buffer;
+    double * right_buffer;
     int sfont_id;
     int mute;
 } t_fm;
@@ -48,14 +52,14 @@ void ext_main(void* r)
 {
     t_class* c = class_new("fs4m~", (method)fm_new, (method)fm_free, (long)sizeof(t_fm), 0L, A_GIMME, 0);
 
-    class_addmethod(c, (method)fm_bang,  "bang",     0);
-    class_addmethod(c, (method)fm_mute,  "mute",     0);
-    class_addmethod(c, (method)fm_noteon,  "on",   0);
-    class_addmethod(c, (method)fm_noteoff,  "off",  0);
-    // class_addmethod(c, (method)fm_float, "float", A_FLOAT, 0);
-    class_addmethod(c, (method)fm_load, "load", A_SYM, 0);
-    class_addmethod(c, (method)fm_dsp64, "dsp64", A_CANT, 0);
-    class_addmethod(c, (method)fm_assist, "assist", A_CANT, 0);
+    class_addmethod(c, (method)fm_bang,     "bang",     0);
+    class_addmethod(c, (method)fm_mute,     "mute",     0);
+    class_addmethod(c, (method)fm_noteon,   "on",       0);
+    class_addmethod(c, (method)fm_noteoff,  "off",      0);
+    // class_addmethod(c, (method)fm_float, "float",    A_FLOAT, 0);
+    class_addmethod(c, (method)fm_load,     "load",     A_SYM,  0);
+    class_addmethod(c, (method)fm_dsp64,    "dsp64",    A_CANT, 0);
+    class_addmethod(c, (method)fm_assist,   "assist",   A_CANT, 0);
 
     class_dspinit(c);
     class_register(CLASS_BOX, c);
@@ -72,6 +76,8 @@ void* fm_new(t_symbol* s, long argc, t_atom* argv)
         outlet_new((t_pxobject*)x, "signal");
         x->settings = NULL;
         x->synth = NULL;
+        x->left_buffer = NULL;
+        x->right_buffer = NULL;
         x->mute = 0;
         fm_init(x);
     }
@@ -112,7 +118,15 @@ void fm_init(t_fm* x)
     midi_event_latency = period_size / srate;
     if(midi_event_latency >= 0.05)
     {
-        fm_post(x, "You have chosen 'audio.period-size' to be %d samples. Given a sample rate of %.1f this results in a latency of %.1f ms, which will cause MIDI events to be poorly quantized (=untimed) in the synthesized audio (also known as the 'drunken-drummer' syndrome). To avoid that, you're strongly advised to increase 'audio.periods' instead, while keeping 'audio.period-size' small enough to make this warning disappear.", period_size, srate, midi_event_latency*1000.0);
+        fm_post(x, 
+            "You have chosen 'audio.period-size' to be %d samples. "
+            "Given a sample rate of %.1f this results in a latency of %.1f ms, "
+            "which will cause MIDI events to be poorly quantized (=untimed) "
+            "in the synthesized audio (also known as the 'drunken-drummer' "
+            "syndrome). To avoid that, you're strongly advised to increase "
+            "'audio.periods' instead, while keeping 'audio.period-size' small "
+            "enough to make this warning disappear.", 
+            period_size, srate, midi_event_latency * 1000.0);
     }
 
     double gain;
@@ -192,9 +206,57 @@ void fm_bang(t_fm* x)
     }
 }
 
+#if BUFFERED == 1
+
+void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
+{
+    post("buffered audio processing");
+    fluid_settings_setnum(x->settings, "synth.sample-rate", samplerate);
+
+    sysmem_freeptr(x->left_buffer);
+    sysmem_freeptr(x->right_buffer);
+
+    x->left_buffer = (double*)sysmem_newptr(sizeof(double) * maxvectorsize);
+    x->right_buffer = (double*)sysmem_newptr(sizeof(double) * maxvectorsize);
+
+    memset(x->left_buffer, 0.f, sizeof(double) * maxvectorsize);
+    memset(x->right_buffer, 0.f, sizeof(double) * maxvectorsize);
+
+    object_method(dsp64, gensym("dsp_add64"), x, fm_perform64, 0, NULL);
+}
+
+
+void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
+{
+    double* bufL = x->left_buffer;
+    double* bufR = x->right_buffer;
+    int n = (int)sampleframes;
+    // double* dry[2];
+    // dry[0] = bufL;
+    // dry[1] = bufR;
+
+    if (x->mute == 0) {
+        
+        fluid_synth_write_float(x->synth, n, bufL, 0, 1, bufR, 0, 1);
+        // fluid_synth_process(x->synth, n, 0, NULL, 2, dry);
+        for (int i = 0; i < n; i++) {
+            outs[0][i] = *bufL++;
+            outs[1][i] = *bufR++;
+        }
+
+    } else {
+        for (int i = 0; i < n; i++) {
+            outs[0][i] = outs[1][i]= 0.0;
+        }
+    }
+}
+
+#else
+
 void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
 {
     fluid_settings_setnum(x->settings, "synth.sample-rate", samplerate);
+
     object_method(dsp64, gensym("dsp_add64"), x, fm_perform64, 0, NULL);
 }
 
@@ -217,3 +279,6 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
         }
     }
 }
+
+#endif
+
