@@ -14,6 +14,18 @@
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-119",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 26.5, 112.0, 267.0, 22.0 ],
+					"text" : "load /usr/local/share/sounds/sf2/FluidR3_GM.sf2"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"fontname" : "Arial",
 					"fontsize" : 12.0,
 					"id" : "obj-134",
@@ -125,7 +137,7 @@
 
 							}
  ],
-						"originid" : "pat-58"
+						"originid" : "pat-6"
 					}
 ,
 					"patching_rect" : [ 850.0, 668.0, 56.0, 22.0 ],
@@ -830,7 +842,7 @@
 
 							}
  ],
-						"originid" : "pat-60"
+						"originid" : "pat-8"
 					}
 ,
 					"patching_rect" : [ 323.0, 621.0, 97.0, 22.0 ],
@@ -2363,6 +2375,13 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-104", 0 ],
+					"source" : [ "obj-119", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-104", 0 ],
 					"hidden" : 1,
 					"source" : [ "obj-12", 0 ]
 				}
@@ -2940,7 +2959,7 @@
 
 			}
  ],
-		"originid" : "pat-56",
+		"originid" : "pat-4",
 		"dependency_cache" : [ 			{
 				"name" : "fluidsynth~.mxo",
 				"type" : "iLaX"

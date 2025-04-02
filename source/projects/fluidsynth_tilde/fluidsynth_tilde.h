@@ -71,7 +71,7 @@ int is_long(t_atom* a);
 int is_float(t_atom* a);
 int is_number(t_atom* a);
 int is_symbol(t_atom* a);
-int get_number_as_long(t_atom* a);
+int get_number_as_int(t_atom* a);
 double get_number_as_float(t_atom* a);
 char* fsm_translate_fullpath(char* maxpath, char* fullpath);
 t_symbol* fsm_get_stripped_name(const char* fullpath);

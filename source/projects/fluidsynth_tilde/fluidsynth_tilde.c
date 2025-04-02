@@ -12,6 +12,8 @@ struct t_fsm {
     int reverb;
     int chorus;
     int mute;
+    double* left_buffer;
+    double* right_buffer;
     void* outlet;
 };
 
@@ -47,6 +49,7 @@ void fsm_dsp64(t_fsm* x, t_object* dsp64, short* count, double samplerate,
 void fsm_perform64(t_fsm* x, t_object* dsp64, double** ins, long numins,
                    double** outs, long numouts, long sampleframes, long flags,
                    void* userparam)
+
 {
     t_double* outL = outs[0];
     t_double* outR = outs[1];
@@ -54,6 +57,7 @@ void fsm_perform64(t_fsm* x, t_object* dsp64, double** ins, long numins,
 
     if (x->mute == 0) {
         fluid_synth_write_float(x->synth, n, outL, 0, 1, outR, 0, 1);
+        post("out: %f", *outL);
     } else {
         for (int i = 0; i < n; i++) {
             outL[i] = outR[i] = 0.0;
@@ -66,13 +70,10 @@ void fsm_perform64(t_fsm* x, t_object* dsp64, double** ins, long numins,
 
 int is_long(t_atom* a) { return atom_gettype(a) == A_LONG; }
 int is_float(t_atom* a) { return atom_gettype(a) == A_FLOAT; }
-int is_number(t_atom* a)
-{
-    return (atom_gettype(a) == A_LONG || atom_gettype(a) == A_FLOAT);
-}
+int is_number(t_atom* a) { return is_long(a) || is_float(a); }
 int is_symbol(t_atom* a) { return atom_gettype(a) == A_SYM; }
 
-int get_number_as_long(t_atom* a)
+int get_number_as_int(t_atom* a)
 {
     if (!is_number(a)) {
         error("atom is not a number");
@@ -246,7 +247,7 @@ void fsm_unload(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     }
 
     if (is_number(argv)) {
-        int id = get_number_as_long(argv);
+        int id = get_number_as_int(argv);
         fluid_sfont_t* sf = fluid_synth_get_sfont_by_id(x->synth, id);
 
         if (sf != NULL) {
@@ -258,8 +259,8 @@ void fsm_unload(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
                 return;
             }
         }
-
         fsm_error(x, "cannot unload soundfont %d", id);
+
     } else if (is_symbol(argv)) {
         t_symbol* sym = atom_getsym(argv);
 
@@ -304,7 +305,7 @@ void fsm_reload(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 0) {
         if (is_number(argv)) {
-            int id = get_number_as_long(argv);
+            int id = get_number_as_int(argv);
             fluid_sfont_t* sf = fluid_synth_get_sfont_by_id(x->synth, id);
 
             if (sf != NULL) {
@@ -367,7 +368,7 @@ void fsm_note(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         default:
         case 3:
             if (is_number(argv + 2)) {
-                channel = get_number_as_long(argv + 2);
+                channel = get_number_as_int(argv + 2);
 
                 if (channel < 1)
                     channel = 1;
@@ -376,9 +377,9 @@ void fsm_note(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
             }
         case 2:
             if (is_number(argv + 1))
-                velocity = get_number_as_long(argv + 1);
+                velocity = get_number_as_int(argv + 1);
         case 1:
-            fluid_synth_noteon(x->synth, channel - 1, get_number_as_long(argv),
+            fluid_synth_noteon(x->synth, channel - 1, get_number_as_int(argv),
                                velocity);
         case 0:
             break;
@@ -402,7 +403,7 @@ void fsm_control_change(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         default:
         case 3:
             if (is_number(argv + 2)) {
-                channel = get_number_as_long(argv + 2);
+                channel = get_number_as_int(argv + 2);
 
                 if (channel < 1)
                     channel = 1;
@@ -411,9 +412,9 @@ void fsm_control_change(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
             }
         case 2:
             if (is_number(argv + 1))
-                value = get_number_as_long(argv + 1);
+                value = get_number_as_int(argv + 1);
         case 1:
-            fluid_synth_cc(x->synth, channel - 1, get_number_as_long(argv),
+            fluid_synth_cc(x->synth, channel - 1, get_number_as_int(argv),
                            value);
         case 0:
             break;
@@ -424,12 +425,12 @@ void fsm_control_change(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 void fsm_mod(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 {
     if (argc > 1 && is_number(argv) && is_number(argv + 1)) {
-        int param = get_number_as_long(argv);
+        int param = get_number_as_int(argv);
         float value = get_number_as_float(argv + 1);
         int channel = 1;
 
         if (argc > 2 && is_number(argv + 2)) {
-            channel = get_number_as_long(argv + 2);
+            channel = get_number_as_int(argv + 2);
 
             if (channel < 1)
                 channel = 1;
@@ -448,7 +449,7 @@ void fsm_pitch_bend(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         double bend = 0.0;
 
         if (argc > 1 && is_number(argv + 1)) {
-            channel = get_number_as_long(argv + 1);
+            channel = get_number_as_int(argv + 1);
 
             if (channel < 1)
                 channel = 1;
@@ -473,10 +474,10 @@ void fsm_pitch_bend_wheel(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         int channel = 1;
 
         if (argc > 1 && is_number(argv + 1))
-            channel = get_number_as_long(argv + 1);
+            channel = get_number_as_int(argv + 1);
 
         fluid_synth_pitch_wheel_sens(x->synth, channel - 1,
-                                     get_number_as_long(argv));
+                                     get_number_as_int(argv));
     }
 }
 
@@ -486,7 +487,7 @@ void fsm_program_change(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         int channel = 1;
 
         if (argc > 1 && is_number(argv + 1)) {
-            channel = get_number_as_long(argv + 1);
+            channel = get_number_as_int(argv + 1);
 
             if (channel < 1)
                 channel = 1;
@@ -495,7 +496,7 @@ void fsm_program_change(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         }
 
         fluid_synth_program_change(x->synth, channel - 1,
-                                   get_number_as_long(argv));
+                                   get_number_as_int(argv));
     }
 }
 
@@ -508,7 +509,7 @@ void fsm_bank_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         int prog_num;
 
         if (argc > 1 && is_number(argv + 1)) {
-            channel = get_number_as_long(argv + 1);
+            channel = get_number_as_int(argv + 1);
 
             if (channel < 1)
                 channel = 1;
@@ -517,7 +518,7 @@ void fsm_bank_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         }
 
         fluid_synth_bank_select(x->synth, channel - 1,
-                                get_number_as_long(argv));
+                                get_number_as_int(argv));
         fluid_synth_get_program(x->synth, channel - 1, &sf_id, &bank_num,
                                 &prog_num);
         fluid_synth_program_change(x->synth, channel - 1, prog_num);
@@ -534,7 +535,7 @@ void fsm_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     default:
     case 4:
         if (is_number(argv + 3))
-            channel = get_number_as_long(argv + 3);
+            channel = get_number_as_int(argv + 3);
 
         if (channel < 1)
             channel = 1;
@@ -543,16 +544,16 @@ void fsm_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 
     case 3:
         if (is_number(argv + 2))
-            preset = get_number_as_long(argv + 2);
+            preset = get_number_as_int(argv + 2);
 
     case 2:
         if (is_number(argv + 1))
-            bank = get_number_as_long(argv + 1);
+            bank = get_number_as_int(argv + 1);
 
     case 1:
         if (is_number(argv))
             fluid_synth_program_select(x->synth, channel - 1,
-                                       get_number_as_long(argv), bank, preset);
+                                       get_number_as_int(argv), bank, preset);
         else if (is_symbol(argv)) {
             t_symbol* name = atom_getsym(argv);
             fluid_sfont_t* sf = fsm_sfont_get_by_name(x, name);
@@ -710,10 +711,10 @@ void fsm_chorus(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         default:
         case 5:
             if (is_number(argv + 4))
-                c.nr = get_number_as_long(argv + 4);
+                c.nr = get_number_as_int(argv + 4);
         case 4:
             if (is_number(argv + 3))
-                c.type = get_number_as_long(argv + 3);
+                c.type = get_number_as_int(argv + 3);
         case 3:
             if (is_number(argv + 2))
                 c.depth_ms = get_number_as_float(argv + 2);
@@ -721,8 +722,7 @@ void fsm_chorus(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
             if (is_number(argv + 1))
                 c.speed = get_number_as_float(argv + 1);
         case 1: {
-            // fluid_synth_set_chorus(x->synth, nr, get_number_as_float(argv),
-            //                        speed, depth, type);
+            fluid_synth_chorus_on(x->synth, c.fx_group, TRUE);
 
             c.level = get_number_as_float(argv);
 
@@ -844,7 +844,7 @@ void fsm_mute(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     int mute = 1;
 
     if (argc > 0 && is_number(argv))
-        mute = (get_number_as_long(argv) != 0);
+        mute = (get_number_as_int(argv) != 0);
 
     fluid_synth_system_reset(x->synth);
 
@@ -858,12 +858,6 @@ void fsm_unmute(t_fsm* x)
     atom_setlong(&a, 0);
     fsm_mute(x, NULL, 1, &a);
 }
-
-/*
-int fluid_synth_count_audio_channels (fluid_synth_t *synth)
-int fluid_synth_count_audio_groups (fluid_synth_t *synth)
-int fluid_synth_count_effects_channels (fluid_synth_t *synth)
-*/
 
 
 void fsm_tuning_octave(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
@@ -885,10 +879,10 @@ void fsm_tuning_octave(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         n = 12;
 
     if (argc > 0 && is_number(argv))
-        tuning_bank = get_number_as_long(argv) % 128;
+        tuning_bank = get_number_as_int(argv) % 128;
 
     if (argc > 1 && is_number(argv + 1))
-        tuning_prog = get_number_as_long(argv) % 128;
+        tuning_prog = get_number_as_int(argv) % 128;
 
     for (i = 0; i < n; i++) {
         if (is_number(argv + i + 2))
@@ -911,13 +905,13 @@ void fsm_tuning_select(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     int channel = 1;
 
     if (argc > 0 && is_number(argv))
-        tuning_bank = get_number_as_long(argv) % 128;
+        tuning_bank = get_number_as_int(argv) % 128;
 
     if (argc > 1 && is_number(argv + 1))
-        tuning_prog = get_number_as_long(argv + 1) % 128;
+        tuning_prog = get_number_as_int(argv + 1) % 128;
 
     if (argc > 2 && is_number(argv + 2))
-        channel = get_number_as_long(argv + 2);
+        channel = get_number_as_int(argv + 2);
 
     if (channel < 1)
         channel = 1;
@@ -933,7 +927,7 @@ void fsm_tuning_reset(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     int channel = 0;
 
     if (argc > 0 && is_number(argv))
-        channel = get_number_as_long(argv);
+        channel = get_number_as_int(argv);
 
     if (channel < 1)
         channel = 1;
@@ -943,27 +937,13 @@ void fsm_tuning_reset(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     fluid_synth_deactivate_tuning(x->synth, channel - 1, FALSE);
 }
 
-/* more tuning ??
-int fluid_synth_activate_key_tuning(fluid_synth_t *synth, int bank, int prog,
-const char *name, const double *pitch, int apply); int
-fluid_synth_tune_notes(fluid_synth_t *synth, int bank, int prog, int len, const
-int *keys, const double *pitch, int apply); void
-fluid_synth_tuning_iteration_start(fluid_synth_t *synth); int
-fluid_synth_tuning_iteration_next(fluid_synth_t *synth, int *bank, int *prog);
-int fluid_synth_tuning_dump(fluid_synth_t *synth, int bank, int prog, char
-*name, int len, double *pitch);
-*/
 
 void fsm_version(t_fsm* x)
 {
-    fsm_post(x, "fluidsynth~, version %s (based on FluidSynth %s)",
-             FSM_VERSION, FLUIDSYNTH_VERSION);
-    fsm_post(x,
-             "  FluidSynth is written by Peter Hanappe et al. (see "
-             "fluidsynth.org)");
-    fsm_post(x,
-             "  Max/MSP integration by Norbert Schnell IMTR IRCAM - Centre "
-             "Pompidou");
+    post("fluidsynth~, version %s (based on FluidSynth %s)", FSM_VERSION,
+        FLUIDSYNTH_VERSION);
+    post("FluidSynth is written by Peter Hanappe et al. (see fluidsynth.org)");
+    post("Max/MSP integration by Norbert Schnell IMTR IRCAM - Centre Pompidou");
 }
 
 
@@ -973,7 +953,7 @@ void fsm_print_soundfonts(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     int i;
 
     if (n > 0) {
-        fsm_post(x, "fluidsynth~ soundfonts:");
+        fsm_post(x, "soundfonts:");
     } else {
         fsm_error(x, "no soundfonts loaded");
         return;
@@ -1012,8 +992,7 @@ void fsm_print_presets(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
 
                 fluid_sfont_iteration_start(sf);
 
-                fsm_post(
-                    x, "fluidsynth~ presets of soundfont '%s':", name->s_name);
+                fsm_post(x, "presets of soundfont '%s':", name->s_name);
 
                 while ((preset = fluid_sfont_iteration_next(sf)) != NULL) {
                     const char* preset_str = fluid_preset_get_name(preset);
@@ -1028,7 +1007,7 @@ void fsm_print_presets(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         } else {
             int i;
 
-            fsm_post(x, "fluidsynth~ presets:");
+            fsm_post(x, "presets:");
 
             for (i = 0; i < 128; i++) {
                 int j;
@@ -1068,7 +1047,7 @@ void fsm_print_channels(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     int n = fluid_synth_count_midi_channels(x->synth);
     int i;
 
-    fsm_post(x, "fluidsynth~ channels:");
+    fsm_post(x, "channels:");
 
     for (i = 0; i < n; i++) {
         fluid_preset_t* preset = fluid_synth_get_channel_preset(x->synth, i);
@@ -1099,14 +1078,14 @@ void fsm_print_generators(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     int i;
 
     if (argc > 1 && is_number(argv + 1))
-        channel = get_number_as_long(argv + 1);
+        channel = get_number_as_int(argv + 1);
 
     if (channel < 1)
         channel = 1;
     else if (channel > fluid_synth_count_midi_channels(x->synth))
         channel = fluid_synth_count_midi_channels(x->synth);
 
-    fsm_post(x, "fluidsynth~ generators of channel %d:", channel);
+    fsm_post(x, "generators of channel %d:", channel);
 
     for (i = 0; i < n; i++) {
         const char* name = fsm_gen_info[i].name;
@@ -1137,7 +1116,7 @@ void fsm_print_reverb(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
     fluid_synth_get_reverb_group_width(x->synth, r.fx_group, &r.width);
 
     if (x->reverb != 0) {
-        fsm_post(x, "fluidsynth~ current reverb parameters:");
+        fsm_post(x, "current reverb parameters:");
         fsm_post(x, "  level: %f", r.level);
         fsm_post(x, "  room size: %f", r.roomsize);
         fsm_post(x, "  damping: %f", r.damping);
@@ -1159,7 +1138,7 @@ void fsm_print_chorus(t_fsm* x, t_symbol* s, short argc, t_atom* argv)
         fluid_synth_get_chorus_group_nr(x->synth, c.fx_group, &c.nr);
         fluid_synth_get_chorus_group_type(x->synth, c.fx_group, &c.type);
 
-        fsm_post(x, "fluidsynth~ current chorus parameters:");
+        fsm_post(x, "current chorus parameters:");
         fsm_post(x, "  level: %f", c.level);
         fsm_post(x, "  speed: %f Hz", c.speed);
         fsm_post(x, "  depth: %f msec", c.depth_ms);
@@ -1215,7 +1194,7 @@ void fsm_info_presets(t_fsm* x, t_symbol* s, long argc, t_atom* argv)
 {
     int n = fluid_synth_sfcount(x->synth);
     if (n <= 0) {
-        fsm_error(x, "fluidsynth~ info: no soundfonts loaded");
+        fsm_error(x, "info: no soundfonts loaded");
         return;
     }
 
@@ -1432,15 +1411,17 @@ void* fsm_new(t_symbol* s, long argc, t_atom* argv)
     x->reverb = 0;
     x->chorus = 0;
     x->mute = 0;
+    x->left_buffer = NULL;
+    x->right_buffer = NULL;
 
     if (argc > 0 && is_number(argv)) {
-        polyphony = get_number_as_long(argv);
+        polyphony = get_number_as_int(argv);
         argc--;
         argv++;
     }
 
     if (argc > 0 && is_number(argv)) {
-        midi_channels = get_number_as_long(argv);
+        midi_channels = get_number_as_int(argv);
         argc--;
         argv++;
     }
