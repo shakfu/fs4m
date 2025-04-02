@@ -1,15 +1,17 @@
-# A modern fluidsynth~ external for Max/MSP
+# Towards a modern fluidsynth~ external for Max/MSP
 
-`fs4m` is a project to modernize the old Ircam (Max 4) `fluidmax~` fluidsynth external by Norbert Schnell and update it for use in Max 8/9 and fluidsynth 2.4.x. The updated external is called `fluidsynth~` for consistency.
+This project is about modernizing an old Max 4 fluidsynth v1 external (for Max/MSP originally by Norbert Schnell which I found included in `fluidsynth-1.1.7`, called fluidmax.  Subsequently, I happily discovered an effort at modernization of the same code by Volker Bohm of the same external [here](https://github.com/v7b1/max-thirdParty_externals) albeit using a modified version of FluidSynth v1.0.8 (and which works well in Max 8/9).
 
-So far code from the prior`fluidmax~` external (included in `source/thirdparty`) has been revised to incorporate modern idioms and deprecated api calls has been removed.
+Current work on v2 modernization project is ongoing (macOS only for the time being). While initial effort was simply to get it work with modern Max 8 or 9 idioms, clean up the code, and remove / replace deprecated fluidsynth api calls. However, it is not currently functional as the audio is not working as expected. 
 
-Audio generation is still pending.
+I have included the code of the original fluidmax project in the `thirdparty` folder and also Volker Bohm's working 64-bit update of the former which is compiled in this project.
+
+If one can figure out what is causing this audio generation issue, a new fluidsynth~ v2 version will be provided here.
 
 All development is done on a MacOS M1 Macbook laptop.
 
 
-## Building on MaxOS
+## Building on MacOS
 
 Requires (Xcode) and
 
