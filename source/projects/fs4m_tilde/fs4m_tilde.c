@@ -21,6 +21,10 @@ typedef struct _fm
 
     fluid_settings_t *settings;
     fluid_synth_t *synth;
+    fluid_player_t *player;
+    fluid_midi_router_t *router;
+    fluid_midi_driver_t *mdriver;
+    fluid_cmd_handler_t *cmd_handler;
     double * left_buffer;
     double * right_buffer;
     long out_maxsize;
@@ -37,6 +41,8 @@ void fm_assist(t_fm* x, void* b, long m, long a, char* s);
 void fm_bang(t_fm* x);
 void fm_mute(t_fm* x);
 void fm_load(t_fm* x, t_symbol* sfont);
+void fm_play(t_fm* x, t_symbol* midifile);
+void fm_stop(t_fm*);
 void fm_note(t_fm* x, t_symbol* s, short argc, t_atom* argv);
 void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
 void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
@@ -79,6 +85,8 @@ void ext_main(void* r)
 
     class_addmethod(c, (method)fm_bang,     "bang",     0);
     class_addmethod(c, (method)fm_mute,     "mute",     0);
+    class_addmethod(c, (method)fm_stop,     "stop",     0);
+    class_addmethod(c, (method)fm_play,     "play",     A_SYM,   0);
     class_addmethod(c, (method)fm_note,     "note",     A_GIMME, 0);
     class_addmethod(c, (method)fm_load,     "load",     A_SYM,   0);
     class_addmethod(c, (method)fm_dsp64,    "dsp64",    A_CANT,  0);
@@ -99,6 +107,10 @@ void* fm_new(t_symbol* s, long argc, t_atom* argv)
         outlet_new((t_pxobject*)x, "signal");
         x->settings = NULL;
         x->synth = NULL;
+        x->player = NULL;
+        x->router = NULL;
+        x->mdriver = NULL;
+        x->cmd_handler = NULL;
         x->left_buffer = NULL;
         x->right_buffer = NULL;
         x->out_maxsize = 0;
@@ -136,6 +148,12 @@ void fm_init(t_fm* x)
         return;
     }
 
+    x->router = new_fluid_midi_router(x->settings, fluid_synth_handle_midi_event, (void *)x->synth);
+    x->mdriver = new_fluid_midi_driver(x->settings, fluid_midi_router_handle_midi_event, (void *)x->router);
+    x->player  = new_fluid_player(x->synth);
+    fluid_player_set_playback_callback(x->player, fluid_midi_router_handle_midi_event, x->router);
+    x->cmd_handler = new_fluid_cmd_handler2(x->settings, x->synth, x->router, x->player);
+
     double srate, midi_event_latency;
     int period_size;
     
@@ -165,6 +183,18 @@ void fm_init(t_fm* x)
 
 void fm_free(t_fm* x)
 {
+    if (x->cmd_handler != NULL)
+        delete_fluid_cmd_handler(x->cmd_handler);
+
+    if (x->player != NULL)
+        delete_fluid_player(x->player);
+
+    if (x->mdriver != NULL)
+        delete_fluid_midi_driver(x->mdriver);
+
+    if (x->router != NULL)
+        delete_fluid_midi_router(x->router);
+
     if (x->synth != NULL)
         delete_fluid_synth(x->synth);
 
@@ -197,6 +227,18 @@ void fm_load(t_fm* x, t_symbol* sfont)
     {
         fm_error(x, "Loading SoundFont '%s' failed!", sfont->s_name);
     }
+}
+
+void fm_play(t_fm* x, t_symbol* midifile)
+{
+    fm_post(x, "playing %s", midifile->s_name);
+    fluid_player_add(x->player, midifile->s_name);
+    fluid_player_play(x->player);
+}
+
+void fm_stop(t_fm* x)
+{
+    fluid_player_stop(x->player);
 }
 
 void fm_note(t_fm* x, t_symbol* s, short argc, t_atom* argv)
@@ -287,10 +329,14 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
     double* left_out = outs[0];
     double* right_out = outs[1];
     int n = (int)sampleframes;
+    int err = 0;
+
 
     if (x->mute == 0) {
         
-        fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
+        err = fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
+        if(err == FLUID_FAILED)
+            error("Problem writing samples");
 
         for (int i = 0; i < n; i++) {
             left_out[i] = x->left_buffer[i];

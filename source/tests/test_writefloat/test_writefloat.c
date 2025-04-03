@@ -28,7 +28,8 @@ int main(int argc, char **argv)
     int sfont_id;
     int i, key;
     enum { FRAMES = 256 };
-    float buf[FRAMES * 2];
+    float left_buf[FRAMES];
+    float right_buf[FRAMES];
 
     /* Create the settings. */
     settings = new_fluid_settings();
@@ -76,11 +77,15 @@ int main(int argc, char **argv)
         /* Stop the note */
         fluid_synth_noteoff(synth, 0, key);
     }
+    
+    // fluid_synth_noteon(synth, 0, 60, 120);
+    // sleep(0.1);
+    // fluid_synth_noteoff(synth, 0, 60);
 
-    fluid_synth_write_float(synth, FRAMES, buf, 0, 2, buf, 1, 2);
+    fluid_synth_write_float(synth, FRAMES, left_buf, 0, 1, right_buf, 0, 1);
 
-    for (int i=0; i < FRAMES*2; i++) {
-        printf("buf[%d] = %f\n", i, buf[i]);
+    for (int i=0; i < FRAMES; i++) {
+        printf("[%d] = %f    %f\n", i, left_buf[i], right_buf[i]);
     }
 
 err:
