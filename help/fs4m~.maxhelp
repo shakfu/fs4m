@@ -16,6 +16,17 @@
 		"gridsize" : [ 5.0, 5.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-16",
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 45.0, 93.0, 192.0, 19.0 ],
+					"text" : "note <pitch> <velocity> <channel>"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"fontname" : "Arial",
 					"fontsize" : 12.0,
 					"id" : "obj-12",
@@ -23,8 +34,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 75.0, 145.0, 29.5, 22.0 ],
-					"text" : "on"
+					"patching_rect" : [ 45.0, 122.0, 82.0, 22.0 ],
+					"text" : "note 60 100 1"
 				}
 
 			}
@@ -37,8 +48,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 106.5, 145.0, 29.5, 22.0 ],
-					"text" : "off"
+					"patching_rect" : [ 45.0, 150.0, 69.0, 22.0 ],
+					"text" : "note 60 0 1"
 				}
 
 			}

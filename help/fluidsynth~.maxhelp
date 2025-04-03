@@ -82,7 +82,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 70.0, 693.0, 67.0, 19.0 ],
+					"patching_rect" : [ 68.0, 669.0, 67.0, 19.0 ],
 					"text" : "loadmess 120"
 				}
 
@@ -93,7 +93,7 @@
 					"maxclass" : "ezdac~",
 					"numinlets" : 2,
 					"numoutlets" : 0,
-					"patching_rect" : [ 24.0, 765.0, 45.0, 45.0 ]
+					"patching_rect" : [ 24.0, 735.0, 45.0, 45.0 ]
 				}
 
 			}
@@ -1793,7 +1793,7 @@
 					"orientation" : 2,
 					"outlettype" : [ "signal", "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 53.0, 693.0, 17.0, 53.0 ]
+					"patching_rect" : [ 53.0, 676.0, 17.0, 53.0 ]
 				}
 
 			}
@@ -1808,7 +1808,7 @@
 					"orientation" : 2,
 					"outlettype" : [ "signal", "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 27.0, 693.0, 17.0, 53.0 ]
+					"patching_rect" : [ 27.0, 676.0, 17.0, 53.0 ]
 				}
 
 			}

@@ -35,17 +35,43 @@ void fm_free(t_fm* x);
 void fm_assist(t_fm* x, void* b, long m, long a, char* s);
 // void fm_float(t_fm* x, double f);
 void fm_bang(t_fm* x);
-void fm_noteon(t_fm* x);
-void fm_noteoff(t_fm* x);
 void fm_mute(t_fm* x);
 void fm_load(t_fm* x, t_symbol* sfont);
+void fm_note(t_fm* x, t_symbol* s, short argc, t_atom* argv);
 void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
 void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
 
 // global class pointer variable
 static t_class* fm_class = NULL;
 
-//***********************************************************************************************
+//-----------------------------------------------------------------------------
+// helpers
+
+int is_long(t_atom* a) { return atom_gettype(a) == A_LONG; }
+int is_float(t_atom* a) { return atom_gettype(a) == A_FLOAT; }
+int is_number(t_atom* a) { return is_long(a) || is_float(a); }
+int is_symbol(t_atom* a) { return atom_gettype(a) == A_SYM; }
+
+int get_number_as_int(t_atom* a)
+{
+    if (!is_number(a)) {
+        error("atom is not a number");
+        return -1;
+    }
+    return is_long(a) ? (int)atom_getlong(a) : (int)atom_getfloat(a);
+}
+
+double get_number_as_float(t_atom* a)
+{
+    if (!is_number(a)) {
+        error("atom is not a number");
+        return -1.0;
+    }
+    return is_float(a) ? atom_getfloat(a) : (double)atom_getlong(a);
+}
+
+//-----------------------------------------------------------------------------
+// main
 
 void ext_main(void* r)
 {
@@ -53,11 +79,10 @@ void ext_main(void* r)
 
     class_addmethod(c, (method)fm_bang,     "bang",     0);
     class_addmethod(c, (method)fm_mute,     "mute",     0);
-    class_addmethod(c, (method)fm_noteon,   "on",       0);
-    class_addmethod(c, (method)fm_noteoff,  "off",      0);
-    class_addmethod(c, (method)fm_load,     "load",     A_SYM,  0);
-    class_addmethod(c, (method)fm_dsp64,    "dsp64",    A_CANT, 0);
-    class_addmethod(c, (method)fm_assist,   "assist",   A_CANT, 0);
+    class_addmethod(c, (method)fm_note,     "note",     A_GIMME, 0);
+    class_addmethod(c, (method)fm_load,     "load",     A_SYM,   0);
+    class_addmethod(c, (method)fm_dsp64,    "dsp64",    A_CANT,  0);
+    class_addmethod(c, (method)fm_assist,   "assist",   A_CANT,  0);
 
     class_dspinit(c);
     class_register(CLASS_BOX, c);
@@ -69,8 +94,7 @@ void* fm_new(t_symbol* s, long argc, t_atom* argv)
     t_fm* x = (t_fm*)object_alloc(fm_class);
 
     if (x) {
-        dsp_setup((t_pxobject*)x, 0); // use 0 if you don't need inlets
-        // dsp_setup((t_pxobject*)x, 1); // use 0 if you don't need inlets
+        dsp_setup((t_pxobject*)x, 0); // use 0 if you don't need signal inlets
         outlet_new((t_pxobject*)x, "signal");
         outlet_new((t_pxobject*)x, "signal");
         x->settings = NULL;
@@ -172,14 +196,33 @@ void fm_load(t_fm* x, t_symbol* sfont)
     }
 }
 
-void fm_noteon(t_fm* x)
+void fm_note(t_fm* x, t_symbol* s, short argc, t_atom* argv)
 {
-    fluid_synth_noteon(x->synth, 0, 60, 100);
-}
+    if (argc > 0 && is_number(argv)) {
+        int velocity = 64;
+        int channel = 1;
 
-void fm_noteoff(t_fm* x)
-{
-    fluid_synth_noteoff(x->synth, 0, 60);
+        switch (argc) {
+        default:
+        case 3:
+            if (is_number(argv + 2)) {
+                channel = get_number_as_int(argv + 2);
+
+                if (channel < 1)
+                    channel = 1;
+                else if (channel > fluid_synth_count_midi_channels(x->synth))
+                    channel = fluid_synth_count_midi_channels(x->synth);
+            }
+        case 2:
+            if (is_number(argv + 1))
+                velocity = get_number_as_int(argv + 1);
+        case 1:
+            fluid_synth_noteon(x->synth, channel - 1, get_number_as_int(argv),
+                               velocity);
+        case 0:
+            break;
+        }
+    }
 }
 
 void fm_mute(t_fm* x)
