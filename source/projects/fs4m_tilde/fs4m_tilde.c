@@ -311,17 +311,21 @@ void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long ma
     if(x->out_maxsize < maxvectorsize) {
         fm_post(x, "buffers allocated");
 
-        x->left_buffer = (double*)sysmem_newptrclear(sizeof(double) * maxvectorsize);
-        x->right_buffer = (double*)sysmem_newptrclear(sizeof(double) * maxvectorsize);
+        // sysmem_freeptr(x->left_buffer);
+        // sysmem_freeptr(x->right_buffer);
 
-        // x->left_buffer = (double*)sysmem_resizeptrclear(x->left_buffer, sizeof(double) * maxvectorsize);
-        // x->right_buffer = (double*)sysmem_resizeptrclear(x->right_buffer, sizeof(double) * maxvectorsize);
+        // x->left_buffer = (double*)sysmem_newptrclear(sizeof(double) * maxvectorsize);
+        // x->right_buffer = (double*)sysmem_newptrclear(sizeof(double) * maxvectorsize);
+
+        x->left_buffer = (double*)sysmem_resizeptrclear(x->left_buffer, sizeof(double) * maxvectorsize);
+        x->right_buffer = (double*)sysmem_resizeptrclear(x->right_buffer, sizeof(double) * maxvectorsize);
 
         x->out_maxsize = maxvectorsize;
     }
 
     object_method(dsp64, gensym("dsp_add64"), x, fm_perform64, 0, NULL);
 }
+
 
 
 void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
@@ -331,9 +335,8 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
     int n = (int)sampleframes;
     int err = 0;
 
-
     if (x->mute == 0) {
-        
+
         err = fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
         if(err == FLUID_FAILED)
             error("Problem writing samples");
