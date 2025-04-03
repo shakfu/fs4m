@@ -52,7 +52,7 @@ int main(int argc, char **argv)
      * get used from the SoundFont)
      * Depending on the size of the SoundFont, this will take some time to complete...
      */
-    sfont_id = fluid_synth_sfload(synth, "/usr/local/share/sounds/sf2/FluidR3_GM.sf2", 1);
+    sfont_id = fluid_synth_sfload(synth, "examples/sf2/GM.sf2", 1);
     if(sfont_id == FLUID_FAILED)
     {
         puts("Loading the SoundFont failed!");

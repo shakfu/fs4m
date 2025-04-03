@@ -116,6 +116,9 @@ void fm_init(t_fm* x)
         fm_error(x, "Failed to create the settings!");
         return;
     }
+
+    fluid_settings_setint(x->settings, "synth.midi-channels", 16);
+    fluid_settings_setint(x->settings, "synth.polyphony", 256);
     fluid_settings_setnum(x->settings, "synth.gain", 0.600000);
     fluid_settings_setnum(x->settings, "synth.sample-rate", sys_getsr());
 
