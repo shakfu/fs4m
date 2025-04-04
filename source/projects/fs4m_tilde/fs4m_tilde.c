@@ -367,7 +367,6 @@ void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long ma
     object_method(dsp64, gensym("dsp_add64"), x, fm_perform64, 0, NULL);
 }
 
-
 void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
     double* left_out = outs[0];
@@ -380,8 +379,7 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
     int err = 0;
 
     if (x->mute == 0) {
-        err = fluid_synth_process(x->synth, n, 0, NULL, 2, dry);
-        // err = fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
+        err = fluid_synth_write_float(x->synth, n, dry[0], 0, 1, dry[1], 0, 1);
         if(err == FLUID_FAILED)
             error("Problem writing samples");
 
@@ -404,4 +402,42 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
         }
     }
 }
+
+
+// void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
+// {
+//     double* left_out = outs[0];
+//     double* right_out = outs[1];
+//     int n = (int)sampleframes;
+//     float* dry[2];
+
+//     dry[0] = x->left_buffer;
+//     dry[1] = x->right_buffer;
+//     int err = 0;
+
+//     if (x->mute == 0) {
+//         err = fluid_synth_process(x->synth, n, 0, NULL, 2, dry);
+//         // err = fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
+//         if(err == FLUID_FAILED)
+//             error("Problem writing samples");
+
+//         for (int i = 0; i < n; i++) {
+//             left_out[i] = dry[0][i];
+//             right_out[i] = dry[1][i];
+//         }
+
+//         memset(x->left_buffer, 0.f, sizeof(float) * x->out_maxsize);
+//         memset(x->right_buffer, 0.f, sizeof(float) * x->out_maxsize);
+
+//         // for (int i = 0; i < n; i++) {
+//         //     left_out[i] = x->left_buffer[i];
+//         //     right_out[i] = x->right_buffer[i];
+//         // }
+
+//     } else {
+//         for (int i = 0; i < n; i++) {
+//             left_out[i] = right_out[i]= 0.0;
+//         }
+//     }
+// }
 
