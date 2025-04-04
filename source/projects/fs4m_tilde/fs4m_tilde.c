@@ -371,30 +371,23 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
 {
     double* left_out = outs[0];
     double* right_out = outs[1];
+    float* left_buf = x->left_buffer;
+    float* right_buf = x->right_buffer;
     int n = (int)sampleframes;
-    float* dry[2];
-
-    dry[0] = x->left_buffer;
-    dry[1] = x->right_buffer;
     int err = 0;
 
     if (x->mute == 0) {
-        err = fluid_synth_write_float(x->synth, n, dry[0], 0, 1, dry[1], 0, 1);
+        err = fluid_synth_write_float(x->synth, n, left_buf, 0, 1, right_buf, 0, 1);
         if(err == FLUID_FAILED)
             error("Problem writing samples");
 
         for (int i = 0; i < n; i++) {
-            left_out[i] = dry[0][i];
-            right_out[i] = dry[1][i];
+            left_out[i] = left_buf[i];
+            right_out[i] = right_buf[i];
         }
 
-        memset(x->left_buffer, 0.f, sizeof(float) * x->out_maxsize);
-        memset(x->right_buffer, 0.f, sizeof(float) * x->out_maxsize);
-
-        // for (int i = 0; i < n; i++) {
-        //     left_out[i] = x->left_buffer[i];
-        //     right_out[i] = x->right_buffer[i];
-        // }
+        memset(left_buf, 0.f, sizeof(float) * x->out_maxsize);
+        memset(right_buf, 0.f, sizeof(float) * x->out_maxsize);
 
     } else {
         for (int i = 0; i < n; i++) {
