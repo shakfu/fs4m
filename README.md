@@ -1,32 +1,38 @@
-# Towards a modern fluidsynth~ external for Max/MSP
+# Towards a modern fluidsynth~ External for Max/MSP
 
-This project started out as an effort to modernize the old Max 4 fluidsynth v1 external, called `fluidmax~`, originally written by Norbert Schnell which I discovered included in the `fluidsynth-1.1.7` distribution. The code for this external didn't compile in the case of Max 8 and Max 9, and needed refreshing, so I started this project and a few days into upgrading the fluidsynth code base to 2.4.4, I was pleased to find out that I got that it worked well in my initial tests.
+This project modernizes the original `fluidmax~` external for Max/MSP, originally created by Norbert Schnell at IRCAM and included in the `fluidsynth-1.1.7` distribution. The goal is to provide a fully functional fluidsynth implementation that works with Max 8/9 and fluidsynth 2.4.4.
 
-The funny thing is that I had previously downloaded, installed and forgotten that I had installed into my Max Packages directory, Volker Böhm's update of the same fluidmax external, and subsequently discovered that my initial test successes were wholly due to his efforts and not mine. (-:
+## Project History
 
-After disabling Volker's external from the Packages directory, I discovered that my modernization efforts did not work with fluidsynth 2.4.4 and indeed, I didn't have the source of Volker's external to discover why.. 
+The development journey began with an attempt to update the original (Norbert Schnell) fluidmax code, but led to the discovery of Volker Böhm's existing working update of the former. After studying Volker's implementation (based on fluidsynth 1.0.8) from his [max-thirdParty_externals collection](https://github.com/v7b1/max-thirdParty_externals), the project was restarted with a clear focus on supporting fluidsynth 2.4.4.
 
-A few days later, I happily found the source (Thanks again Volker), kindly made available in his [max-thirdParty_externals collection](https://github.com/v7b1/max-thirdParty_externals), and noted that his fixed version used a modified version of fluidsynth 1.0.8.
+## Included Externals
 
-Thereafter, I restarted work with the discrete objective of updating prior code (Norbert's and Volker's) to work with fluidsynth 2.4.4 and Max 8/9.
+The project contains three externals:
 
-The result of the above adventure is that this project include several externals:
+1. `fluidsynth_tilde` (Volker Böhm's reference implementation)
+   - Located in `sources/thirdparty`
+   - Based on fluidsynth 1.0.8
+   - Special feature: self-contained compilation without external dependencies
 
-1. Volker's `fluidsynth_tilde`, for reference, which is located in the `sources/thirdparty` folder, and is based on a modified version of fluidsynth 1.0.8. It has the wonderful and special feature of compiling somehow without dependencies!
+2. `fsm_tilde`
+   - Updated version of the original `fluidmax~` external for Max 8/9.
+   - Removes deprecated functions
+   - Compatible with fluidsynth 2.4.4
 
-2. `fsm_tilde`: an update of Norbert's older fluidmax but with the removal of deprecated functions and which works with fluidsynth 2.4.4
+3. `fs4m_tilde`
+   - New implementation from scratch
+   - Used for testing fluidsynth 2.4.4 features
+   - Simpler architecture
 
-3. `fs4m_tilde`: a simpler external which was written from scratch, and which is used for experimentation with fluidsynth 2.4.4 features in Max. 
+## Building and Development
 
-I have included the code of the original fluidmax project in the `thirdparty` folder for reference.
+- Primary development platform: MacOS M1 Macbook
+- Build requirements:
+  - Xcode
+  - fluidsynth (via Homebrew)
 
-
-All development is done on a MacOS M1 Macbook laptop.
-
-
-## Building on MacOS
-
-Requires (Xcode) and
+First
 
 ```sh
 brew install fluidsynth
