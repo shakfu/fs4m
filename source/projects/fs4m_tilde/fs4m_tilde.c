@@ -40,6 +40,7 @@ void fm_assist(t_fm* x, void* b, long m, long a, char* s);
 // void fm_float(t_fm* x, double f);
 void fm_bang(t_fm* x);
 void fm_mute(t_fm* x);
+t_symbol* fm_locate_path_from_symbol(t_fm* x, t_symbol* s);
 void fm_load(t_fm* x, t_symbol* sfont);
 void fm_play(t_fm* x, t_symbol* midifile);
 void fm_stop(t_fm*);
@@ -123,36 +124,46 @@ void* fm_new(t_symbol* s, long argc, t_atom* argv)
 void fm_init(t_fm* x)
 {
     x->settings = new_fluid_settings();
-    if(x->settings == NULL)
-    {
+    if(x->settings == NULL) {
         fm_error(x, "Failed to create the settings!");
         return;
     }
 
+    fluid_settings_setnum(x->settings, "synth.sample-rate", sys_getsr());
     fluid_settings_setint(x->settings, "synth.midi-channels", 16);
     fluid_settings_setint(x->settings, "synth.polyphony", 256);
     fluid_settings_setnum(x->settings, "synth.gain", 0.600000);
-    fluid_settings_setnum(x->settings, "synth.sample-rate", sys_getsr());
 
     x->synth = new_fluid_synth(x->settings);
-    if(x->synth == NULL)
-    {
+    if(x->synth == NULL) {
         fm_error(x, "Failed to create the synth!");
         return;
     }
 
-    x->sfont_id = fluid_synth_sfload(x->synth, "/usr/local/share/sounds/sf2/FluidR3_GM.sf2", 1);
-    if(x->sfont_id == FLUID_FAILED)
-    {
-        fm_error(x, "Loading the SoundFont failed!");
+    x->router = new_fluid_midi_router(x->settings, fluid_synth_handle_midi_event, (void *)x->synth);
+    if(x->router == NULL) {
+        fm_error(x, "Creating midi router failed.");
         return;
     }
 
-    x->router = new_fluid_midi_router(x->settings, fluid_synth_handle_midi_event, (void *)x->synth);
     x->mdriver = new_fluid_midi_driver(x->settings, fluid_midi_router_handle_midi_event, (void *)x->router);
+    if(x->mdriver == NULL) {
+        fm_error(x, "Creating midi driver failed.");
+        return;
+    }
+
     x->player  = new_fluid_player(x->synth);
+    if(x->player == NULL) {
+        fm_error(x, "Creating midi player failed.");
+        return;
+    }
     fluid_player_set_playback_callback(x->player, fluid_midi_router_handle_midi_event, x->router);
+    
     x->cmd_handler = new_fluid_cmd_handler2(x->settings, x->synth, x->router, x->player);
+    if(x->cmd_handler == NULL) {
+        fm_error(x, "Creating cmd_handler failed.");
+        return;
+    }
 
     double srate, midi_event_latency;
     int period_size;
@@ -220,9 +231,35 @@ void fm_assist(t_fm* x, void* b, long m, long a, char* s)
     }
 }
 
+t_symbol* fm_locate_path_from_symbol(t_fm* x, t_symbol* s)
+{
+    char filename[MAX_PATH_CHARS];
+    char pathname[MAX_PATH_CHARS];
+    short path;
+    t_fourcc type;
+    t_max_err err;
+
+    strncpy_zero(filename, s->s_name, MAX_PATH_CHARS);
+    if (locatefile_extended(filename, &path, &type, NULL, 0)) {
+        // nozero: not found
+        error("can't find file %s", s->s_name);
+        return gensym("");
+    }
+
+    pathname[0] = 0;
+    err = path_toabsolutesystempath(path, filename, pathname);
+    if (err != MAX_ERR_NONE) {
+        error("can't convert %s to absolutepath", s->s_name);
+        return gensym("");
+    }
+    // post("full path is: %s", pathname->s_name);
+    return gensym(pathname);
+}
+
 void fm_load(t_fm* x, t_symbol* sfont)
 {
-    x->sfont_id = fluid_synth_sfload(x->synth, sfont->s_name, 1);
+    t_symbol* sfont_path = fm_locate_path_from_symbol(x, sfont);
+    x->sfont_id = fluid_synth_sfload(x->synth, sfont_path->s_name, 1);
     if(x->sfont_id == FLUID_FAILED)
     {
         fm_error(x, "Loading SoundFont '%s' failed!", sfont->s_name);
@@ -231,8 +268,9 @@ void fm_load(t_fm* x, t_symbol* sfont)
 
 void fm_play(t_fm* x, t_symbol* midifile)
 {
+    t_symbol* midifile_path = fm_locate_path_from_symbol(x, midifile);
     fm_post(x, "playing %s", midifile->s_name);
-    fluid_player_add(x->player, midifile->s_name);
+    fluid_player_add(x->player, midifile_path->s_name);
     fluid_player_play(x->player);
 }
 
@@ -311,14 +349,17 @@ void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long ma
     if(x->out_maxsize < maxvectorsize) {
         fm_post(x, "buffers allocated");
 
-        // sysmem_freeptr(x->left_buffer);
-        // sysmem_freeptr(x->right_buffer);
+        sysmem_freeptr(x->left_buffer);
+        sysmem_freeptr(x->right_buffer);
 
-        // x->left_buffer = (double*)sysmem_newptrclear(sizeof(double) * maxvectorsize);
-        // x->right_buffer = (double*)sysmem_newptrclear(sizeof(double) * maxvectorsize);
+        x->left_buffer = (float*)sysmem_newptrclear(sizeof(float) * maxvectorsize);
+        x->right_buffer = (float*)sysmem_newptrclear(sizeof(float) * maxvectorsize);
 
-        x->left_buffer = (double*)sysmem_resizeptrclear(x->left_buffer, sizeof(double) * maxvectorsize);
-        x->right_buffer = (double*)sysmem_resizeptrclear(x->right_buffer, sizeof(double) * maxvectorsize);
+        // x->left_buffer = (float*)sysmem_resizeptrclear(x->left_buffer, sizeof(float) * maxvectorsize);
+        // x->right_buffer = (float*)sysmem_resizeptrclear(x->right_buffer, sizeof(float) * maxvectorsize);
+
+        // memset(x->left_buffer, 0.f, sizeof(float) * maxvectorsize);
+        // memset(x->right_buffer, 0.f, sizeof(float) * maxvectorsize);
 
         x->out_maxsize = maxvectorsize;
     }
@@ -327,24 +368,35 @@ void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long ma
 }
 
 
-
 void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
     double* left_out = outs[0];
     double* right_out = outs[1];
     int n = (int)sampleframes;
+    float* dry[2];
+
+    dry[0] = x->left_buffer;
+    dry[1] = x->right_buffer;
     int err = 0;
 
     if (x->mute == 0) {
-
-        err = fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
+        err = fluid_synth_process(x->synth, n, 0, NULL, 2, dry);
+        // err = fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
         if(err == FLUID_FAILED)
             error("Problem writing samples");
 
         for (int i = 0; i < n; i++) {
-            left_out[i] = x->left_buffer[i];
-            right_out[i] = x->right_buffer[i];
+            left_out[i] = dry[0][i];
+            right_out[i] = dry[1][i];
         }
+
+        memset(x->left_buffer, 0.f, sizeof(float) * x->out_maxsize);
+        memset(x->right_buffer, 0.f, sizeof(float) * x->out_maxsize);
+
+        // for (int i = 0; i < n; i++) {
+        //     left_out[i] = x->left_buffer[i];
+        //     right_out[i] = x->right_buffer[i];
+        // }
 
     } else {
         for (int i = 0; i < n; i++) {
