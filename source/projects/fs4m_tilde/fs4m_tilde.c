@@ -15,6 +15,17 @@
 #define fm_error(x, ...) object_error((t_object*)(x), __VA_ARGS__);
 #define fm_post(x, ...) object_post((t_object*)(x), __VA_ARGS__);
 
+#define FM_MAX_ATOMS 1024
+
+typedef struct {
+    fluid_istream_t istream;
+    size_t isize;
+    char* ibuf;
+    fluid_ostream_t ostream;
+    size_t osize;
+    char* obuf;
+} t_streams;
+
 typedef struct _fm
 {
     t_pxobject ob; // the object itself (t_pxobject in MSP instead of t_object)
@@ -25,8 +36,10 @@ typedef struct _fm
     fluid_midi_router_t *router;
     fluid_midi_driver_t *mdriver;
     fluid_cmd_handler_t *cmd_handler;
-    double * left_buffer;
-    double * right_buffer;
+    fluid_shell_t *shell;
+    t_streams streams;
+    float * left_buffer;
+    float * right_buffer;
     long out_maxsize;
     int sfont_id;
     int mute;
@@ -45,6 +58,7 @@ void fm_load(t_fm* x, t_symbol* sfont);
 void fm_play(t_fm* x, t_symbol* midifile);
 void fm_stop(t_fm*);
 void fm_note(t_fm* x, t_symbol* s, short argc, t_atom* argv);
+t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv);
 void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
 void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
 
@@ -92,6 +106,7 @@ void ext_main(void* r)
     class_addmethod(c, (method)fm_load,     "load",     A_SYM,   0);
     class_addmethod(c, (method)fm_dsp64,    "dsp64",    A_CANT,  0);
     class_addmethod(c, (method)fm_assist,   "assist",   A_CANT,  0);
+    class_addmethod(c, (method)fm_anything, "anything", A_GIMME, 0);
 
     class_dspinit(c);
     class_register(CLASS_BOX, c);
@@ -112,6 +127,13 @@ void* fm_new(t_symbol* s, long argc, t_atom* argv)
         x->router = NULL;
         x->mdriver = NULL;
         x->cmd_handler = NULL;
+        x->shell = NULL;
+        x->streams.istream = 0;
+        x->streams.isize = 0;
+        x->streams.ibuf = NULL;
+        x->streams.ostream = 0;
+        x->streams.osize = 0;
+        x->streams.obuf = NULL;
         x->left_buffer = NULL;
         x->right_buffer = NULL;
         x->out_maxsize = 0;
@@ -158,10 +180,19 @@ void fm_init(t_fm* x)
         return;
     }
     fluid_player_set_playback_callback(x->player, fluid_midi_router_handle_midi_event, x->router);
-    
+
     x->cmd_handler = new_fluid_cmd_handler2(x->settings, x->synth, x->router, x->player);
     if(x->cmd_handler == NULL) {
         fm_error(x, "Creating cmd_handler failed.");
+        return;
+    }
+
+    x->streams.istream = open_memstream(&x->streams.ibuf, &x->streams.isize);
+    x->streams.ostream = open_memstream(&x->streams.obuf, &x->streams.osize);
+
+    x->shell = new_fluid_shell(x->settings, x->cmd_handler, x->streams.istream, x->streams.ostream, 1);
+    if(x->shell == NULL) {
+        fm_error(x, "Creating cmd shell failed.");
         return;
     }
 
@@ -347,6 +378,74 @@ void fm_bang(t_fm* x)
     defer_low((t_object*)x, (method)do_random_notes, NULL, 0, NULL);
 }
 
+t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
+{
+    t_atom atoms[FM_MAX_ATOMS];
+    long textsize = 0;
+    char* text = NULL;
+
+    if (s == gensym("")) {
+        return MAX_ERR_GENERIC;
+    }
+
+    // set symbol as first atom in new atoms array
+    atom_setsym(atoms, s);
+
+    for (int i = 0; i < argc; i++) {
+        switch ((argv + i)->a_type) {
+        case A_FLOAT: {
+            atom_setfloat((atoms + (i + 1)), atom_getfloat(argv + i));
+            break;
+        }
+        case A_LONG: {
+            atom_setlong((atoms + (i + 1)), atom_getlong(argv + i));
+            break;
+        }
+        case A_SYM: {
+            atom_setsym((atoms + (i + 1)), atom_getsym(argv + i));
+            break;
+        }
+        default:
+            object_error((t_object*)x, "cannot process unknown type");
+            break;
+        }
+    }
+
+    t_max_err err = atom_gettext(argc+1, atoms, &textsize, &text,
+                                 OBEX_UTIL_ATOM_GETTEXT_DEFAULT);
+    if (err != MAX_ERR_NONE && !textsize && !text) {
+        goto error;
+    }
+
+    post("text: %s", text);
+
+    char *buf;
+    size_t size;
+    FILE* ostream = open_memstream(&buf, &size);
+
+    int res = fluid_command(x->cmd_handler, text, ostream);
+    if (res == -1) {
+        fm_error(x, "cmd failed: '%s'");
+        goto cleanup;
+    }
+
+    fclose(ostream);
+    if (buf)
+        fm_post(x, "size: %d buf: %s", size, buf);
+    free(buf);
+
+cleanup:
+    sysmem_freeptr(text);
+
+    return MAX_ERR_NONE;
+
+error:
+
+    return MAX_ERR_GENERIC;
+}
+
+
+
 void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
 {
     fluid_settings_setnum(x->settings, "synth.sample-rate", samplerate);
@@ -391,12 +490,9 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
             right_out[i] = right_buf[i];
         }
 
-        memset(left_buf, 0.f, sizeof(float) * x->out_maxsize);
-        memset(right_buf, 0.f, sizeof(float) * x->out_maxsize);
-
     } else {
         for (int i = 0; i < n; i++) {
-            left_out[i] = right_out[i]= 0.0;
+            left_out[i] = right_out[i] = 0.0;
         }
     }
 }

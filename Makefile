@@ -12,7 +12,7 @@ DMG=$(PACKAGE_NAME)-$(VERSION)-$(ARCH).dmg
 ENTITLEMENTS = source/scripts/entitlements.plist
 VERSION=0.1.0
 
-.PHONY: all build universal bundle setup clean reset
+.PHONY: all build static universal bundle setup clean reset
 
 all: build
 
@@ -31,6 +31,14 @@ build:
 		cmake -GXcode .. -DENABLE_HOMEBREW=ON && \
 		cmake --build . --config '$(CONFIG)' && \
 		cmake --install . --config '$(CONFIG)'
+
+static:
+	@mkdir -p build && \
+		cd build && \
+		cmake -GXcode .. -DENABLE_HOMEBREW=ON -DBUILD_STATIC=ON && \
+		cmake --build . --config '$(CONFIG)' && \
+		cmake --install . --config '$(CONFIG)'
+
 
 clean:
 	@rm -rf \
