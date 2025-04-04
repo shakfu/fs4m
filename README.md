@@ -32,7 +32,7 @@ The project contains three externals:
   - Xcode
   - fluidsynth (via Homebrew)
 
-First
+To build with shared libraries:
 
 ```sh
 brew install fluidsynth
@@ -43,6 +43,13 @@ then just
 ```sh
 make
 ```
+
+alternatively, to build with static libraries:
+
+```sh
+make static
+```
+
 
 ## Project Status
 

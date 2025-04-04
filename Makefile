@@ -19,6 +19,9 @@ all: build
 install_sf2:
 	@./source/scripts/download_sf2.sh
 
+install_fs:
+	@./source/scripts/install_fluidsynth.sh
+
 bundle: reset build install_sf2
 	@mkdir -p build && \
 		g++ -O3 -o build/bundler source/scripts/bundler.cpp && \
@@ -32,7 +35,7 @@ build:
 		cmake --build . --config '$(CONFIG)' && \
 		cmake --install . --config '$(CONFIG)'
 
-static:
+static: install_fs
 	@mkdir -p build && \
 		cd build && \
 		cmake -GXcode .. -DENABLE_HOMEBREW=ON -DBUILD_STATIC=ON && \
