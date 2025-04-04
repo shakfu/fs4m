@@ -10,21 +10,9 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 96.0, 104.0, 1207.0, 751.0 ],
+		"rect" : [ 96.0, 104.0, 1245.0, 754.0 ],
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
-				"box" : 				{
-					"id" : "obj-119",
-					"maxclass" : "message",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "" ],
-					"patching_rect" : [ 26.5, 112.0, 267.0, 22.0 ],
-					"text" : "load /usr/local/share/sounds/sf2/FluidR3_GM.sf2"
-				}
-
-			}
-, 			{
 				"box" : 				{
 					"fontname" : "Arial",
 					"fontsize" : 12.0,
@@ -2247,7 +2235,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 22.0, 11.0, 140.0, 33.0 ],
+					"patching_rect" : [ 22.0, 11.0, 67.0, 33.0 ],
 					"text" : "fsm~"
 				}
 
@@ -2260,8 +2248,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 22.0, 44.0, 215.0, 20.0 ],
-					"text" : "FluidSynth sound font synthesizer"
+					"patching_rect" : [ 22.0, 44.0, 328.0, 20.0 ],
+					"text" : "FluidSynth sound font synthesizer based on fluidsynth 2.4.4"
 				}
 
 			}
@@ -2369,13 +2357,6 @@
 				"patchline" : 				{
 					"destination" : [ "obj-97", 0 ],
 					"source" : [ "obj-104", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-104", 0 ],
-					"source" : [ "obj-119", 0 ]
 				}
 
 			}

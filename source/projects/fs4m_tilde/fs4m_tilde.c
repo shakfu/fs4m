@@ -319,7 +319,7 @@ void fm_mute(t_fm* x)
     }
 }
 
-void fm_bang(t_fm* x)
+void do_random_notes(t_fm* x, t_symbol* s, short argc, t_atom* argv)
 {
     int key = 0;
 
@@ -335,11 +335,16 @@ void fm_bang(t_fm* x)
         fluid_synth_noteon(x->synth, 0, key, 80);
 
         /* Sleep for 1 second */
-        sleep(0.3);
+        sleep(1);
 
         /* Stop the note */
         fluid_synth_noteoff(x->synth, 0, key);
     }
+}
+
+void fm_bang(t_fm* x)
+{
+    defer_low((t_object*)x, (method)do_random_notes, NULL, 0, NULL);
 }
 
 void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
@@ -349,14 +354,14 @@ void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long ma
     if(x->out_maxsize < maxvectorsize) {
         fm_post(x, "buffers allocated");
 
-        sysmem_freeptr(x->left_buffer);
-        sysmem_freeptr(x->right_buffer);
+        // sysmem_freeptr(x->left_buffer);
+        // sysmem_freeptr(x->right_buffer);
 
-        x->left_buffer = (float*)sysmem_newptrclear(sizeof(float) * maxvectorsize);
-        x->right_buffer = (float*)sysmem_newptrclear(sizeof(float) * maxvectorsize);
+        // x->left_buffer = (float*)sysmem_newptrclear(sizeof(float) * maxvectorsize);
+        // x->right_buffer = (float*)sysmem_newptrclear(sizeof(float) * maxvectorsize);
 
-        // x->left_buffer = (float*)sysmem_resizeptrclear(x->left_buffer, sizeof(float) * maxvectorsize);
-        // x->right_buffer = (float*)sysmem_resizeptrclear(x->right_buffer, sizeof(float) * maxvectorsize);
+        x->left_buffer = (float*)sysmem_resizeptrclear(x->left_buffer, sizeof(float) * maxvectorsize);
+        x->right_buffer = (float*)sysmem_resizeptrclear(x->right_buffer, sizeof(float) * maxvectorsize);
 
         // memset(x->left_buffer, 0.f, sizeof(float) * maxvectorsize);
         // memset(x->right_buffer, 0.f, sizeof(float) * maxvectorsize);
@@ -401,16 +406,14 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
 // {
 //     double* left_out = outs[0];
 //     double* right_out = outs[1];
-//     int n = (int)sampleframes;
 //     float* dry[2];
-
 //     dry[0] = x->left_buffer;
 //     dry[1] = x->right_buffer;
+//     int n = (int)sampleframes;
 //     int err = 0;
 
 //     if (x->mute == 0) {
 //         err = fluid_synth_process(x->synth, n, 0, NULL, 2, dry);
-//         // err = fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
 //         if(err == FLUID_FAILED)
 //             error("Problem writing samples");
 
@@ -422,15 +425,9 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
 //         memset(x->left_buffer, 0.f, sizeof(float) * x->out_maxsize);
 //         memset(x->right_buffer, 0.f, sizeof(float) * x->out_maxsize);
 
-//         // for (int i = 0; i < n; i++) {
-//         //     left_out[i] = x->left_buffer[i];
-//         //     right_out[i] = x->right_buffer[i];
-//         // }
-
 //     } else {
 //         for (int i = 0; i < n; i++) {
 //             left_out[i] = right_out[i]= 0.0;
 //         }
 //     }
 // }
-

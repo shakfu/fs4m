@@ -12,8 +12,8 @@ struct t_fsm {
     int reverb;
     int chorus;
     int mute;
-    double* left_buffer;
-    double* right_buffer;
+    float* left_buffer;
+    float* right_buffer;
     long out_maxsize;
     void* outlet;
 };
@@ -46,14 +46,9 @@ void fsm_dsp64(t_fsm* x, t_object* dsp64, short* count, double samplerate, long 
     fluid_settings_setnum(x->settings, "synth.sample-rate", samplerate);
 
     if(x->out_maxsize < maxvectorsize) {
-        sysmem_freeptr(x->left_buffer);
-        sysmem_freeptr(x->right_buffer);
 
-        x->left_buffer = (double*)sysmem_newptr(sizeof(double) * maxvectorsize);
-        x->right_buffer = (double*)sysmem_newptr(sizeof(double) * maxvectorsize);
-
-        memset(x->left_buffer, 0.f, sizeof(double) * maxvectorsize);
-        memset(x->right_buffer, 0.f, sizeof(double) * maxvectorsize);
+        x->left_buffer = (float*)sysmem_resizeptrclear(x->left_buffer, sizeof(float) * maxvectorsize);
+        x->right_buffer = (float*)sysmem_resizeptrclear(x->right_buffer, sizeof(float) * maxvectorsize);
 
         x->out_maxsize = maxvectorsize;
     }
@@ -61,21 +56,24 @@ void fsm_dsp64(t_fsm* x, t_object* dsp64, short* count, double samplerate, long 
     object_method(dsp64, gensym("dsp_add64"), x, fsm_perform64, 0, NULL);
 }
 
-
 void fsm_perform64(t_fsm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
     double* left_out = outs[0];
     double* right_out = outs[1];
+    float* left_buf = x->left_buffer;
+    float* right_buf = x->right_buffer;
     int n = (int)sampleframes;
 
     if (x->mute == 0) {
-        
-        fluid_synth_write_float(x->synth, n, x->left_buffer, 0, 1, x->right_buffer, 0, 1);
+        fluid_synth_write_float(x->synth, n, left_buf, 0, 1, right_buf, 0, 1);
 
         for (int i = 0; i < n; i++) {
-            left_out[i] = x->left_buffer[i];
-            right_out[i] = x->right_buffer[i];
+            left_out[i] = left_buf[i];
+            right_out[i] = right_buf[i];
         }
+
+        memset(left_buf, 0.f, sizeof(float) * x->out_maxsize);
+        memset(right_buf, 0.f, sizeof(float) * x->out_maxsize);
 
     } else {
         for (int i = 0; i < n; i++) {
@@ -83,6 +81,7 @@ void fsm_perform64(t_fsm* x, t_object* dsp64, double** ins, long numins, double*
         }
     }
 }
+
 
 /*----------------------------------------------------------------------------*/
 // helpers

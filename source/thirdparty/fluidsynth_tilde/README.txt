@@ -1,4 +1,4 @@
-This is Volker Böhm's update version which compiles and works (-:
+This is Volker Böhm's updated version which compiles and works (-:
 from: https://github.com/v7b1/max-thirdParty_externals
 
 ******************************************************************
