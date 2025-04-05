@@ -54,6 +54,7 @@ void fm_load(t_fm* x, t_symbol* sfont);
 void fm_play(t_fm* x, t_symbol* midifile);
 void fm_stop(t_fm*);
 void fm_note(t_fm* x, t_symbol* s, short argc, t_atom* argv);
+// void fm_prog(t_fm* x, t_symbol* s, short argc, t_atom* argv);
 t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv);
 void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
 void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
@@ -99,6 +100,7 @@ void ext_main(void* r)
     class_addmethod(c, (method)fm_stop,     "stop",     0);
     class_addmethod(c, (method)fm_play,     "play",     A_SYM,   0);
     class_addmethod(c, (method)fm_note,     "note",     A_GIMME, 0);
+    // class_addmethod(c, (method)fm_prog,     "prog",     A_GIMME, 0);
     class_addmethod(c, (method)fm_load,     "load",     A_SYM,   0);
     class_addmethod(c, (method)fm_dsp64,    "dsp64",    A_CANT,  0);
     class_addmethod(c, (method)fm_assist,   "assist",   A_CANT,  0);
@@ -292,6 +294,24 @@ void fm_stop(t_fm* x)
 {
     fluid_player_stop(x->player);
 }
+
+
+// void fm_prog(t_fm* x, t_symbol* s, short argc, t_atom* argv)
+// {
+//     if (argc != 2 || !is_number(argv)) {
+//         fm_error(x, "needs two args: prog <channel> <program>");
+//         return;
+//     }
+//     int channel = get_number_as_int(argv);
+//     int program = get_number_as_int(argv + 1);
+//     int res = fluid_synth_program_change(x->synth, channel, program);
+//     if (res != FLUID_OK) {
+//         fm_error(x, "program change failed.");
+//         return;
+//     }
+//     fm_post(x, "prog %d %d", channel, program);
+// }
+
 
 void fm_note(t_fm* x, t_symbol* s, short argc, t_atom* argv)
 {

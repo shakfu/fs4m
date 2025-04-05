@@ -24,6 +24,7 @@ The project contains three externals:
    - New implementation from scratch
    - Used for testing fluidsynth 2.4.4 features
    - Simpler architecture
+   - Uses fluidsynth's builtin commands
 
 ## Building and Development
 
