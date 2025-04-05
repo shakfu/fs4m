@@ -104,15 +104,17 @@ int main(int argc, char **argv)
             printf("File Contents: %s\n", buffer);
 
         } else {
-
+            puts("opem_memstream method doesn't work");
             char *buf;
             size_t size;
             FILE* ostream = open_memstream(&buf, &size);
-            dup2(fileno(ostream), STDOUT_FILENO);
+            int MEMOUT_FILENO = fileno(ostream);
+            if (MEMOUT_FILENO == -1) {
+                perror("Failed to get memstream fileno");
+                exit(1);
+            }
 
-            fluid_ostream_t MEMOUT_FILENO = fileno(ostream);
-
-            int res = fluid_command(cmd_handler, "help\n", STDOUT_FILENO);
+            int res = fluid_command(cmd_handler, "help\n", (fluid_ostream_t)MEMOUT_FILENO);
             if (res != FLUID_OK) {
                 puts("cmd failed");
             }

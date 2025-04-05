@@ -1,4 +1,4 @@
-# Towards a modern fluidsynth~ External for Max/MSP
+# Towards a modern fluidsynth~ external for Max/MSP
 
 This project modernizes the original `fluidmax~` external for Max/MSP, originally created by Norbert Schnell at IRCAM and included in the `fluidsynth-1.1.7` distribution. The goal is to provide a fully functional fluidsynth implementation that works with Max 8/9 and fluidsynth 2.4.4.
 
