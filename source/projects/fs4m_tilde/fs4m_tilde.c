@@ -1,19 +1,9 @@
-/**
-        @file
-        fs4m~: fluidsynth object for Max
-*/
-
 #include "ext.h"
 #include "ext_obex.h"
 #include "z_dsp.h"
 
-#include <stdlib.h>
 #include <unistd.h>
-
-#include <stdio.h>
-#include <string.h>
 #include <fcntl.h>
-#include <sys/types.h>
 
 #include <fluidsynth.h>
 
@@ -46,7 +36,6 @@ void* fm_new(t_symbol* s, long argc, t_atom* argv);
 void fm_init(t_fm* x);
 void fm_free(t_fm* x);
 void fm_assist(t_fm* x, void* b, long m, long a, char* s);
-// void fm_float(t_fm* x, double f);
 void fm_bang(t_fm* x);
 void fm_mute(t_fm* x);
 t_symbol* fm_locate_path_from_symbol(t_fm* x, t_symbol* s);
