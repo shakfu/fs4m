@@ -15,16 +15,8 @@
 #define fm_error(x, ...) object_error((t_object*)(x), __VA_ARGS__);
 #define fm_post(x, ...) object_post((t_object*)(x), __VA_ARGS__);
 
+#define MAX_COMMAND_LEN 1024
 #define FM_MAX_ATOMS 1024
-
-typedef struct {
-    fluid_istream_t istream;
-    size_t isize;
-    char* ibuf;
-    fluid_ostream_t ostream;
-    size_t osize;
-    char* obuf;
-} t_streams;
 
 typedef struct _fm
 {
@@ -36,8 +28,6 @@ typedef struct _fm
     fluid_midi_router_t *router;
     fluid_midi_driver_t *mdriver;
     fluid_cmd_handler_t *cmd_handler;
-    fluid_shell_t *shell;
-    t_streams streams;
     float * left_buffer;
     float * right_buffer;
     long out_maxsize;
@@ -127,13 +117,6 @@ void* fm_new(t_symbol* s, long argc, t_atom* argv)
         x->router = NULL;
         x->mdriver = NULL;
         x->cmd_handler = NULL;
-        x->shell = NULL;
-        x->streams.istream = 0;
-        x->streams.isize = 0;
-        x->streams.ibuf = NULL;
-        x->streams.ostream = 0;
-        x->streams.osize = 0;
-        x->streams.obuf = NULL;
         x->left_buffer = NULL;
         x->right_buffer = NULL;
         x->out_maxsize = 0;
@@ -184,15 +167,6 @@ void fm_init(t_fm* x)
     x->cmd_handler = new_fluid_cmd_handler2(x->settings, x->synth, x->router, x->player);
     if(x->cmd_handler == NULL) {
         fm_error(x, "Creating cmd_handler failed.");
-        return;
-    }
-
-    x->streams.istream = open_memstream(&x->streams.ibuf, &x->streams.isize);
-    x->streams.ostream = open_memstream(&x->streams.obuf, &x->streams.osize);
-
-    x->shell = new_fluid_shell(x->settings, x->cmd_handler, x->streams.istream, x->streams.ostream, 1);
-    if(x->shell == NULL) {
-        fm_error(x, "Creating cmd shell failed.");
         return;
     }
 
@@ -406,7 +380,7 @@ t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
             break;
         }
         default:
-            object_error((t_object*)x, "cannot process unknown type");
+            fm_error(x, "cannot process unknown type");
             break;
         }
     }
@@ -419,22 +393,24 @@ t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
 
     post("text: %s", text);
 
+    char sbuf[MAX_COMMAND_LEN];
+    snprintf_zero(sbuf, MAX_COMMAND_LEN, "%s\n\0", text);
+    post("sbuf: %s", sbuf);
+
     char *buf;
     size_t size;
     FILE* ostream = open_memstream(&buf, &size);
 
-    int res = fluid_command(x->cmd_handler, text, ostream);
-    if (res == -1) {
+    int res = fluid_command(x->cmd_handler, sbuf, ostream);
+    if (res != FLUID_OK) {
         fm_error(x, "cmd failed: '%s'");
-        goto cleanup;
     }
 
+cleanup:
     fclose(ostream);
-    if (buf)
+    if (size)
         fm_post(x, "size: %d buf: %s", size, buf);
     free(buf);
-
-cleanup:
     sysmem_freeptr(text);
 
     return MAX_ERR_NONE;
