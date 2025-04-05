@@ -226,9 +226,11 @@ void fm_free(t_fm* x)
 
     if(x->left_buffer != NULL)
         sysmem_freeptr(x->left_buffer);
+        x->left_buffer = NULL;
   
     if(x->right_buffer != NULL)
         sysmem_freeptr(x->right_buffer);
+        x->right_buffer = NULL;
   
     dsp_free((t_pxobject*)x);
 }
@@ -393,18 +395,21 @@ t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
     }
 
     t_max_err err = atom_gettext(argc+1, atoms, &textsize, &text,
+                                 // OBEX_UTIL_ATOM_GETTEXT_FORCE_ZEROS);
                                  OBEX_UTIL_ATOM_GETTEXT_DEFAULT);
     if (err != MAX_ERR_NONE && !textsize && !text) {
         goto error;
     }
 
-    // post("text: %s", text);
+    // post("cmd: '%s' size: %d", text, strlen(text));
+    post("cmd: %s", text);
 
     char filename[MAX_FILENAME_CHARS];
     snprintf_zero(filename, MAX_FILENAME_CHARS, "/tmp/temp.%s", x->name->s_name);
 
     int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0600);
     int res = fluid_command(x->cmd_handler, text, (fluid_ostream_t)fd);
+    // int res = fluid_command(x->cmd_handler, text, (fluid_ostream_t)fd);
     if (res != FLUID_OK) {
         fm_error(x, "cmd failed: '%s'");
     }
@@ -422,17 +427,15 @@ t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
     ssize_t bytes_read = read(fd, buffer, nbytes);
     close(fd);
 
-    // post("%zd bytes read!\n", bytes_read);
-    // post("File Contents: %s\n", buffer);
-    post("%s\n", buffer);
+    // post("bytes read: %zd", bytes_read);
+    if(bytes_read)
+        post("%s", buffer);
 
 cleanup:
-
     sysmem_freeptr(text);
     return MAX_ERR_NONE;
 
 error:
-
     return MAX_ERR_GENERIC;
 }
 
@@ -454,8 +457,8 @@ void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long ma
         x->left_buffer = (float*)sysmem_resizeptrclear(x->left_buffer, sizeof(float) * maxvectorsize);
         x->right_buffer = (float*)sysmem_resizeptrclear(x->right_buffer, sizeof(float) * maxvectorsize);
 
-        // memset(x->left_buffer, 0.f, sizeof(float) * maxvectorsize);
-        // memset(x->right_buffer, 0.f, sizeof(float) * maxvectorsize);
+        memset(x->left_buffer, 0.f, sizeof(float) * maxvectorsize);
+        memset(x->right_buffer, 0.f, sizeof(float) * maxvectorsize);
 
         x->out_maxsize = maxvectorsize;
     }

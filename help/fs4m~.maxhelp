@@ -11,10 +11,33 @@
 ,
 		"classnamespace" : "box",
 		"rect" : [ 169.0, 159.0, 640.0, 506.0 ],
-		"default_fontsize" : 10.0,
-		"default_fontname" : "Verdana",
 		"gridsize" : [ 5.0, 5.0 ],
 		"boxes" : [ 			{
+				"box" : 				{
+					"id" : "obj-8",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 442.0, 122.5, 59.0, 22.0 ],
+					"presentation_linecount" : 2,
+					"text" : "prog 1 10"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-20",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 442.0, 168.0, 53.0, 22.0 ],
+					"text" : "prog 1 5"
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"fontname" : "Arial",
 					"fontsize" : 12.0,
@@ -105,7 +128,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 45.0, 93.0, 161.0, 18.0 ],
+					"patching_rect" : [ 45.0, 93.0, 191.0, 20.0 ],
 					"text" : "note <pitch> <velocity> <channel>"
 				}
 
@@ -331,6 +354,13 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-1", 0 ],
+					"source" : [ "obj-20", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-1", 0 ],
 					"source" : [ "obj-5", 0 ]
 				}
 
@@ -346,6 +376,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-1", 0 ],
 					"source" : [ "obj-7", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-1", 0 ],
+					"source" : [ "obj-8", 0 ]
 				}
 
 			}
