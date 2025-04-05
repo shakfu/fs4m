@@ -15,18 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [0.0.x]
 
-- Updated `fs4m_tilde` and `fsm_tilde` audio processing methods to with fluidsynth 2.4.4
+## [0.0.1]
 
-- Fixed remaining tuning methods.
+- Added generic command handling
 
-- Added more consistent error/post mechanism.
+- Updated audio processing methods to work with fluidsynth 2.4.4
 
-- Added bundler for standalone externals.
-
-- Resolved all remaining warnings.
-
-- Refactored long functions.
-
-- Converted old `fluidmax~` external to moderns idioms.
+- Added MIDI player, router and command handler
 
 - Created project.
