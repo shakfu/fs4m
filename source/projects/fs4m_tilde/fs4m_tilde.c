@@ -10,18 +10,24 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/types.h>
+
 #include <fluidsynth.h>
 
 #define fm_error(x, ...) object_error((t_object*)(x), __VA_ARGS__);
 #define fm_post(x, ...) object_post((t_object*)(x), __VA_ARGS__);
 
-#define MAX_COMMAND_LEN 1024
+#define MAX_COMMAND_LEN 2048
 #define FM_MAX_ATOMS 1024
 
 typedef struct _fm
 {
     t_pxobject ob; // the object itself (t_pxobject in MSP instead of t_object)
 
+    t_symbol* name;
     fluid_settings_t *settings;
     fluid_synth_t *synth;
     fluid_player_t *player;
@@ -111,6 +117,7 @@ void* fm_new(t_symbol* s, long argc, t_atom* argv)
         dsp_setup((t_pxobject*)x, 0); // use 0 if you don't need signal inlets
         outlet_new((t_pxobject*)x, "signal");
         outlet_new((t_pxobject*)x, "signal");
+        x->name = symbol_unique();
         x->settings = NULL;
         x->synth = NULL;
         x->player = NULL;
@@ -391,28 +398,37 @@ t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
         goto error;
     }
 
-    post("text: %s", text);
+    // post("text: %s", text);
 
-    char sbuf[MAX_COMMAND_LEN];
-    snprintf_zero(sbuf, MAX_COMMAND_LEN, "%s\n\0", text);
-    post("sbuf: %s", sbuf);
+    char filename[MAX_FILENAME_CHARS];
+    snprintf_zero(filename, MAX_FILENAME_CHARS, "/tmp/temp.%s", x->name->s_name);
 
-    char *buf;
-    size_t size;
-    FILE* ostream = open_memstream(&buf, &size);
-
-    int res = fluid_command(x->cmd_handler, sbuf, ostream);
+    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+    int res = fluid_command(x->cmd_handler, text, (fluid_ostream_t)fd);
     if (res != FLUID_OK) {
         fm_error(x, "cmd failed: '%s'");
     }
+    close(fd);
+
+    fd = open(filename, O_RDONLY);
+    if(fd == -1) {
+        fm_error(x, "error opening file: %s", filename);
+        goto cleanup;
+    } 
+
+    char buffer[MAX_COMMAND_LEN];
+    memset(buffer, 0, MAX_COMMAND_LEN);
+    size_t nbytes = sizeof(buffer);
+    ssize_t bytes_read = read(fd, buffer, nbytes);
+    close(fd);
+
+    // post("%zd bytes read!\n", bytes_read);
+    // post("File Contents: %s\n", buffer);
+    post("%s\n", buffer);
 
 cleanup:
-    fclose(ostream);
-    if (size)
-        fm_post(x, "size: %d buf: %s", size, buf);
-    free(buf);
-    sysmem_freeptr(text);
 
+    sysmem_freeptr(text);
     return MAX_ERR_NONE;
 
 error:

@@ -16,36 +16,42 @@
 		"gridsize" : [ 5.0, 5.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
+					"fontname" : "Arial",
+					"fontsize" : 12.0,
 					"id" : "obj-15",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 250.0, 51.0, 34.0, 21.0 ],
+					"patching_rect" : [ 244.0, 51.0, 35.0, 22.0 ],
 					"text" : "fonts"
 				}
 
 			}
 , 			{
 				"box" : 				{
+					"fontname" : "Arial",
+					"fontsize" : 12.0,
 					"id" : "obj-17",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 330.0, 51.0, 134.0, 21.0 ],
+					"patching_rect" : [ 337.0, 51.0, 139.0, 22.0 ],
 					"text" : "set synth.reverb.active 1"
 				}
 
 			}
 , 			{
 				"box" : 				{
+					"fontname" : "Arial",
+					"fontsize" : 12.0,
 					"id" : "obj-14",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 292.0, 51.0, 30.0, 21.0 ],
+					"patching_rect" : [ 293.0, 51.0, 31.0, 22.0 ],
 					"text" : "help"
 				}
 
@@ -66,35 +72,40 @@
 			}
 , 			{
 				"box" : 				{
+					"fontname" : "Arial",
+					"fontsize" : 12.0,
 					"id" : "obj-13",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 322.0, 185.0, 30.0, 21.0 ],
+					"patching_rect" : [ 322.0, 185.0, 31.0, 22.0 ],
 					"text" : "stop"
 				}
 
 			}
 , 			{
 				"box" : 				{
+					"fontname" : "Arial",
+					"fontsize" : 12.0,
 					"id" : "obj-9",
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 321.0, 150.5, 79.0, 21.0 ],
+					"patching_rect" : [ 321.0, 150.5, 83.0, 22.0 ],
 					"text" : "play bach.mid"
 				}
 
 			}
 , 			{
 				"box" : 				{
+					"fontname" : "Arial",
 					"id" : "obj-16",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 45.0, 93.0, 192.0, 19.0 ],
+					"patching_rect" : [ 45.0, 93.0, 161.0, 18.0 ],
 					"text" : "note <pitch> <velocity> <channel>"
 				}
 
