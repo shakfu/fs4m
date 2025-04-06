@@ -12,7 +12,7 @@ The development journey began with an attempt to update the original `fluidmax~`
 
 The project contains three externals:
 
-1. `fm_tilde` -- the update
+1. `fs_tilde` -- the update
    - Updated version of the original Norbert Schnell `fluidmax~` external for Max 8/9.
    - Removed and replaced deprecated functions
    - Made compatible with fluidsynth 2.4.4
