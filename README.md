@@ -10,16 +10,15 @@ The development journey began with an attempt to update the original (Norbert Sc
 
 The project contains four externals:
 
-1. `fluidsynth_tilde` (Volker Böhm's implementation, included only for reference)
+1. `fluidsynth_tilde` (Volker Böhm's unmodified implementation, included only for reference)
    - Located in `source/thirdparty`
-   - Based on reduced and modified fluidsynth 1.0.8
-   - Special feature: self-contained compilation without external dependencies
-   - Will not be modified further.
+   - Based on modified fluidsynth 1.0.8
+   - Special power: self-contained compilation without external dependencies
 
 2. `fm_tilde` -- the update
    - Updated version of the original Norbert Schnell `fluidmax~` external for Max 8/9.
    - Removed and replaced deprecated functions
-   - Changes to be make compatible with fluidsynth 2.4.4
+   - Made compatible with fluidsynth 2.4.4
 
 3. `fs4m_tilde` -- the rewrite
    - New implementation from scratch
@@ -30,6 +29,7 @@ The project contains four externals:
    - New minimal implementation from scratch
    - Based on fluidsynth 2.4.4
    - Hooks into fluidsynth's builtin command handling infrastructure
+   - Aiming to keep as small as possible (even as single-header lib...)
 
 
 ## Building and Development
@@ -56,20 +56,3 @@ alternatively, to build with static libraries:
 ```sh
 make static
 ```
-
-
-## Project Status
-
-- [x] initial code coversion
-
-- [x] converted old binary `.help~` file to `.maxhelp`
-
-- [x] was able to load `FluidR3_GM.sf2` and generate audio successfully
-
-- [x] replace deprecated / disabled functions
-
-- [ ] add new useful api methods
-
-- [ ] improve crowded `.maxhelp` file
-
-- [ ] make a self-contained bundle (with sf2 files and dylib dependencies)
