@@ -1,12 +1,12 @@
-# Towards a modern fluidsynth~ external for Max/MSP
+# Fluidsynth externals for Max/MSP
 
-This project modernizes the original `fluidmax~` external for Max/MSP, originally created by Norbert Schnell at IRCAM and included in the `fluidsynth-1.1.7` distribution. The goal is to provide a fully functional fluidsynth implementation that works with Max 8/9 and `fluidsynth 2.4.4`.
+This project includes a number of in-development Max/MSP externals which work with [Fluidsynth](https://www.fluidsynth.org) `2.4.x`. MacOS versions are currently only available at this stage.
 
 ## Project History
 
-The development journey began with an attempt to update the original (Norbert Schnell) fluidmax code, but led to the discovery of Volker Böhm's existing working update of the former. After studying Volker's implementation[^1] (based on fluidsynth 1.0.8) from his [max-thirdParty_externals collection](https://github.com/v7b1/max-thirdParty_externals), the project was restarted with a clear focus on supporting fluidsynth 2.4.4
+The development journey began with an attempt to update the original `fluidmax~` code by Norbert Schnell at IRCAM that was included in source distributions of fluidsynth-1.1.7. Further research led to the discovery of Volker Böhm's `fluidsynth~` external based on modified fluidsynth 1.0.8 code. After studying Volker's implementation[^1] included in his [max-thirdParty_externals collection](https://github.com/v7b1/max-thirdParty_externals), the project was restarted with a clear focus on developing externals which support fluidsynth 2.4.x.
 
-[^1]: Volker Böhm's [fluidsynth~](https://github.com/v7b1/max-thirdParty_externals/tree/main/source/projects/fluidsynth_tilde) is based on a modified fluidsynth 1.0.8 code-base, and has a unique special power: self-contained compilation without external dependencies
+[^1]: Volker Böhm's [fluidsynth~](https://github.com/v7b1/max-thirdParty_externals/tree/main/source/projects/fluidsynth_tilde) has a unique special power: self-contained compilation without external dependencies!
 
 ## Included Externals
 
