@@ -17,7 +17,7 @@ VERSION=0.1.0
 all: build
 
 install_sf2:
-	@./source/scripts/download_sf2.sh
+	@./source/scripts/install_sf2.sh
 
 install_fs:
 	@./source/scripts/install_fluidsynth.sh
@@ -25,7 +25,11 @@ install_fs:
 bundle: reset build install_sf2
 	@mkdir -p build && \
 		g++ -O3 -o build/bundler source/scripts/bundler.cpp && \
-		build/bundler -od -b -x ./externals/fluidsynth~.mxo/Contents/MacOS/fluidsynth~ -d ./externals/fluidsynth~.mxo/Contents/Resources/libs/
+		build/bundler -od -b -x ./externals/fs~.mxo/Contents/MacOS/fs~ -d ./externals/fs~.mxo/Contents/Resources/libs/
+
+# bundle: reset build
+# 	@mkdir -p build && \
+# 		python3 source/scripts/bundler.py -od -b -x ./externals/fs~.mxo/Contents/MacOS/fs~ -d ./externals/fs~.mxo/Contents/Resources/libs/
 
 build:
 	@mkdir -p build && \
