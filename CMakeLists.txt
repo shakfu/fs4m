@@ -3,20 +3,15 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment ve
 string(REGEX REPLACE "(.*)/" "" THIS_FOLDER_NAME "${CMAKE_CURRENT_SOURCE_DIR}")
 project(${THIS_FOLDER_NAME})
 
-# general options
-
-
 # macos options
-option(ENABLE_HOMEBREW "Build using Homebrew dependencies")
-option(BUILD_UNIVERSAL "Build Universal Externals")
-
+option(ENABLE_HOMEBREW "Build using homebrew dependencies")
+option(BUILD_UNIVERSAL "Build universal externals")
+option(BUILD_THIRDPARTY "Build thirdparty externals")
 
 # general locations
 set(THIRDPARTY_INSTALL ${CMAKE_BINARY_DIR}/thirdparty/install)
 set(THIRDPARTY_INCLUDE ${THIRDPARTY_INSTALL}/include)
 set(THIRDPARTY_LIB ${THIRDPARTY_INSTALL}/lib)
-
-
 
 # use ccache if available
 find_program(CCACHE_PROGRAM ccache)
@@ -84,5 +79,4 @@ foreach (cat_dir ${CATEGORY_DIRS})
     endif ()
   endforeach ()
 endforeach ()
-
 

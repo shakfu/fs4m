@@ -1,4 +1,5 @@
-This is Volker Böhm's updated version which compiles and works (-:
+This is Volker Böhm's updated version, included only for reference, which compiles and works with Max 8/9. Note that it is based on modified fluidsynth 1.0.8 and has unique special power: self-contained compilation without external dependencies.
+
 from: https://github.com/v7b1/max-thirdParty_externals
 
 ******************************************************************

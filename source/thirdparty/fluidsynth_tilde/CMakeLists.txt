@@ -4,6 +4,8 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../../max-sdk-base/script/max-pretarget.cmak
 # MAX EXTERNAL
 #############################################################
 
+if(BUILD_THIRDPARTY)
+
 # exclude from windows build for now.
 if (APPLE)
 
@@ -83,3 +85,6 @@ source_group(TREE ${SRC_PATH} FILES ${FLUID_SOURCES})
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../max-sdk-base/script/max-posttarget.cmake)
 
 endif()
+
+endif()
+

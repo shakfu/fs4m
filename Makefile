@@ -12,7 +12,7 @@ DMG=$(PACKAGE_NAME)-$(VERSION)-$(ARCH).dmg
 ENTITLEMENTS = source/scripts/entitlements.plist
 VERSION=0.1.0
 
-.PHONY: all build static universal bundle setup clean reset
+.PHONY: all build static universal thirdparty bundle setup clean reset
 
 all: build
 
@@ -26,7 +26,6 @@ bundle: reset build install_sf2
 	@mkdir -p build && \
 		g++ -O3 -o build/bundler source/scripts/bundler.cpp && \
 		build/bundler -od -b -x ./externals/fluidsynth~.mxo/Contents/MacOS/fluidsynth~ -d ./externals/fluidsynth~.mxo/Contents/Resources/libs/
-
 
 build:
 	@mkdir -p build && \
@@ -42,6 +41,12 @@ static: install_fs
 		cmake --build . --config '$(CONFIG)' && \
 		cmake --install . --config '$(CONFIG)'
 
+thirdparty:
+	@mkdir -p build && \
+		cd build && \
+		cmake -GXcode .. -DBUILD_THIRDPARTY=ON -DENABLE_HOMEBREW=ON && \
+		cmake --build . --config '$(CONFIG)' && \
+		cmake --install . --config '$(CONFIG)'
 
 clean:
 	@rm -rf \
