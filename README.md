@@ -4,9 +4,9 @@ This project modernizes the original `fluidmax~` external for Max/MSP, originall
 
 ## Project History
 
-The development journey began with an attempt to update the original (Norbert Schnell) fluidmax code, but led to the discovery of Volker Böhm's existing working update of the former. After studying Volker's implementation [^1] (based on fluidsynth 1.0.8) from his [max-thirdParty_externals collection](https://github.com/v7b1/max-thirdParty_externals), the project was restarted with a clear focus on supporting fluidsynth 2.4.4
+The development journey began with an attempt to update the original (Norbert Schnell) fluidmax code, but led to the discovery of Volker Böhm's existing working update of the former. After studying Volker's implementation[^1] (based on fluidsynth 1.0.8) from his [max-thirdParty_externals collection](https://github.com/v7b1/max-thirdParty_externals), the project was restarted with a clear focus on supporting fluidsynth 2.4.4
 
-[^1] Volker Böhm's [fluidsynth~](https://github.com/v7b1/max-thirdParty_externals/tree/main/source/projects/fluidsynth_tilde) is based on a modified fluidsynth 1.0.8 code-base, and has a unique special power: self-contained compilation without external dependencies
+[^1]: Volker Böhm's [fluidsynth~](https://github.com/v7b1/max-thirdParty_externals/tree/main/source/projects/fluidsynth_tilde) is based on a modified fluidsynth 1.0.8 code-base, and has a unique special power: self-contained compilation without external dependencies
 
 ## Included Externals
 
