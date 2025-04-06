@@ -8,23 +8,29 @@ The development journey began with an attempt to update the original (Norbert Sc
 
 ## Included Externals
 
-The project contains three externals:
+The project contains four externals:
 
-1. `fluidsynth_tilde` (Volker Böhm's reference implementation)
-   - Located in `sources/thirdparty`
-   - Based on fluidsynth 1.0.8
+1. `fluidsynth_tilde` (Volker Böhm's implementation, included only for reference)
+   - Located in `source/thirdparty`
+   - Based on reduced and modified fluidsynth 1.0.8
    - Special feature: self-contained compilation without external dependencies
+   - Will not be modified further.
 
-2. `fsm_tilde`
-   - Updated version of the original `fluidmax~` external for Max 8/9.
-   - Removes deprecated functions
-   - Compatible with fluidsynth 2.4.4
+2. `fm_tilde` -- the update
+   - Updated version of the original Norbert Schnell `fluidmax~` external for Max 8/9.
+   - Removed and replaced deprecated functions
+   - Changes to be make compatible with fluidsynth 2.4.4
 
-3. `fs4m_tilde`
+3. `fs4m_tilde` -- the rewrite
    - New implementation from scratch
-   - Used for testing fluidsynth 2.4.4 features
-   - Simpler architecture
-   - Uses fluidsynth's builtin commands
+   - Based on fluidsynth 2.4.4
+   - Aiming for maximal feature coverage
+
+4. `fsm_tilde` -- the minimal rewrite
+   - New minimal implementation from scratch
+   - Based on fluidsynth 2.4.4
+   - Hooks into fluidsynth's builtin command handling infrastructure
+
 
 ## Building and Development
 

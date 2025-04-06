@@ -39,12 +39,12 @@ void fm_assist(t_fm* x, void* b, long m, long a, char* s);
 void fm_bang(t_fm* x);
 void fm_mute(t_fm* x);
 t_symbol* fm_locate_path_from_symbol(t_fm* x, t_symbol* s);
-void fm_load(t_fm* x, t_symbol* sfont);
-void fm_play(t_fm* x, t_symbol* midifile);
-void fm_stop(t_fm*);
-void fm_note(t_fm* x, t_symbol* s, short argc, t_atom* argv);
-// void fm_prog(t_fm* x, t_symbol* s, short argc, t_atom* argv);
-t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv);
+t_max_err fm_load(t_fm* x, t_symbol* sfont);
+t_max_err fm_play(t_fm* x, t_symbol* midifile);
+t_max_err fm_stop(t_fm*);
+void fm_note(t_fm* x, t_symbol* s, long argc, t_atom* argv);
+t_max_err fm_prog(t_fm* x, t_symbol* s, long argc, t_atom* argv);
+t_max_err fm_cmd(t_fm* x, t_symbol* s, long argc, t_atom* argv);
 void fm_dsp64(t_fm* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
 void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
 
@@ -77,6 +77,16 @@ double get_number_as_float(t_atom* a)
     return is_float(a) ? atom_getfloat(a) : (double)atom_getlong(a);
 }
 
+int has_long_args(long n_required, long argc, t_atom* argv)
+{
+    if (argc != n_required) return 0;
+    
+    for (long i = 0; i < n_required; i++)
+        if (!is_long(argv + i)) return 0;
+        
+    return 1;
+}
+
 //-----------------------------------------------------------------------------
 // main
 
@@ -89,11 +99,11 @@ void ext_main(void* r)
     class_addmethod(c, (method)fm_stop,     "stop",     0);
     class_addmethod(c, (method)fm_play,     "play",     A_SYM,   0);
     class_addmethod(c, (method)fm_note,     "note",     A_GIMME, 0);
-    // class_addmethod(c, (method)fm_prog,     "prog",     A_GIMME, 0);
+    class_addmethod(c, (method)fm_prog,     "prog",     A_GIMME, 0);
     class_addmethod(c, (method)fm_load,     "load",     A_SYM,   0);
     class_addmethod(c, (method)fm_dsp64,    "dsp64",    A_CANT,  0);
     class_addmethod(c, (method)fm_assist,   "assist",   A_CANT,  0);
-    class_addmethod(c, (method)fm_anything, "anything", A_GIMME, 0);
+    class_addmethod(c, (method)fm_cmd,      "cmd",      A_GIMME, 0);
 
     class_dspinit(c);
     class_register(CLASS_BOX, c);
@@ -261,48 +271,81 @@ t_symbol* fm_locate_path_from_symbol(t_fm* x, t_symbol* s)
     return gensym(pathname);
 }
 
-void fm_load(t_fm* x, t_symbol* sfont)
+t_max_err fm_load(t_fm* x, t_symbol* sfont)
 {
     t_symbol* sfont_path = fm_locate_path_from_symbol(x, sfont);
     x->sfont_id = fluid_synth_sfload(x->synth, sfont_path->s_name, 1);
     if(x->sfont_id == FLUID_FAILED)
     {
         fm_error(x, "Loading SoundFont '%s' failed!", sfont->s_name);
+        return MAX_ERR_GENERIC;
     }
+    return MAX_ERR_NONE;
 }
 
-void fm_play(t_fm* x, t_symbol* midifile)
+t_max_err fm_play(t_fm* x, t_symbol* midifile)
 {
     t_symbol* midifile_path = fm_locate_path_from_symbol(x, midifile);
     fm_post(x, "playing %s", midifile->s_name);
     fluid_player_add(x->player, midifile_path->s_name);
     fluid_player_play(x->player);
+    return MAX_ERR_NONE;
 }
 
-void fm_stop(t_fm* x)
+t_max_err fm_stop(t_fm* x)
 {
     fluid_player_stop(x->player);
+    return MAX_ERR_NONE;
 }
 
 
-// void fm_prog(t_fm* x, t_symbol* s, short argc, t_atom* argv)
-// {
-//     if (argc != 2 || !is_number(argv)) {
-//         fm_error(x, "needs two args: prog <channel> <program>");
-//         return;
-//     }
-//     int channel = get_number_as_int(argv);
-//     int program = get_number_as_int(argv + 1);
-//     int res = fluid_synth_program_change(x->synth, channel, program);
-//     if (res != FLUID_OK) {
-//         fm_error(x, "program change failed.");
-//         return;
-//     }
-//     fm_post(x, "prog %d %d", channel, program);
-// }
+/**
+ * @brief      Send a program change message to the synth
+ *             Usage: prog [<program> <channel>]
+ *             If channel is omitted, defaults to 0
+ *             If program is omitted, defaults to 0
+ *
+ * @param      x      The object instance
+ * @param      s      The method selector (unused)
+ * @param      argc   Number of arguments
+ * @param      argv   Array of arguments
+ */
+t_max_err fm_prog(t_fm* x, t_symbol* s, long argc, t_atom* argv)
+{
+    int program = 0;
+    int channel = 0;
+
+    if (argc == 2) {
+        if (!(is_number(argv) && is_number(argv+1))) {
+            fm_error(x, "need at least two numeric values");
+            goto error;
+        }
+        program = get_number_as_int(argv);
+        channel = get_number_as_int(argv + 1);
+    }
+    else if (argc == 1) {
+        if (!is_number(argv)) {
+            fm_error(x, "need at least one numeric value");
+            goto error;
+        }
+        program = get_number_as_int(argv);
+    } else {
+        // defaults to channel 0 and program 0
+    }
+
+    if ((fluid_synth_program_change(x->synth, channel, program)) != FLUID_OK) {
+        fm_error(x, "program change failed.");
+        goto error;
+    }
+    fm_post(x, "prog %d %d", program, channel);
+    return MAX_ERR_NONE;
+
+error:
+    return MAX_ERR_GENERIC;
+}
 
 
-void fm_note(t_fm* x, t_symbol* s, short argc, t_atom* argv)
+void fm_note(t_fm* x, t_symbol* s, long argc, t_atom* argv)
 {
     if (argc > 0 && is_number(argv)) {
         int velocity = 64;
@@ -370,7 +413,7 @@ void fm_bang(t_fm* x)
     defer_low((t_object*)x, (method)do_random_notes, NULL, 0, NULL);
 }
 
-t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
+t_max_err fm_cmd(t_fm* x, t_symbol* s, long argc, t_atom* argv)
 {
     t_atom atoms[FM_MAX_ATOMS];
     long textsize = 0;
@@ -380,21 +423,18 @@ t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
         return MAX_ERR_GENERIC;
     }
 
-    // set symbol as first atom in new atoms array
-    atom_setsym(atoms, s);
-
     for (int i = 0; i < argc; i++) {
         switch ((argv + i)->a_type) {
         case A_FLOAT: {
-            atom_setfloat((atoms + (i + 1)), atom_getfloat(argv + i));
+            atom_setfloat((atoms + i), atom_getfloat(argv + i));
             break;
         }
         case A_LONG: {
-            atom_setlong((atoms + (i + 1)), atom_getlong(argv + i));
+            atom_setlong((atoms + i), atom_getlong(argv + i));
             break;
         }
         case A_SYM: {
-            atom_setsym((atoms + (i + 1)), atom_getsym(argv + i));
+            atom_setsym((atoms + i), atom_getsym(argv + i));
             break;
         }
         default:
@@ -403,8 +443,7 @@ t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
         }
     }
 
-    t_max_err err = atom_gettext(argc+1, atoms, &textsize, &text,
-                                 // OBEX_UTIL_ATOM_GETTEXT_FORCE_ZEROS);
+    t_max_err err = atom_gettext(argc, atoms, &textsize, &text,
                                  OBEX_UTIL_ATOM_GETTEXT_DEFAULT);
     if (err != MAX_ERR_NONE && !textsize && !text) {
         goto error;
@@ -418,16 +457,23 @@ t_max_err fm_anything(t_fm* x, t_symbol* s, short argc, t_atom* argv)
 
     int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0600);
     int res = fluid_command(x->cmd_handler, text, (fluid_ostream_t)fd);
-    // int res = fluid_command(x->cmd_handler, text, (fluid_ostream_t)fd);
-    if (res != FLUID_OK) {
-        fm_error(x, "cmd failed: '%s'");
-    }
     close(fd);
+
+    if (res == -1) {
+        fm_error(x, "command error: '%s'", text);
+        goto error;
+    } else if (res == 1) {
+        fm_error(x, "command is empty");
+        goto error;
+    } else if (res == -2) {
+        fm_error(x, "quit command");
+        goto cleanup;
+    }
 
     fd = open(filename, O_RDONLY);
     if(fd == -1) {
         fm_error(x, "error opening file: %s", filename);
-        goto cleanup;
+        goto error;
     } 
 
     char buffer[MAX_COMMAND_LEN];
@@ -445,6 +491,7 @@ cleanup:
     return MAX_ERR_NONE;
 
 error:
+    sysmem_freeptr(text);
     return MAX_ERR_GENERIC;
 }
 
@@ -502,32 +549,3 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
 }
 
 
-// void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
-// {
-//     double* left_out = outs[0];
-//     double* right_out = outs[1];
-//     float* dry[2];
-//     dry[0] = x->left_buffer;
-//     dry[1] = x->right_buffer;
-//     int n = (int)sampleframes;
-//     int err = 0;
-
-//     if (x->mute == 0) {
-//         err = fluid_synth_process(x->synth, n, 0, NULL, 2, dry);
-//         if(err == FLUID_FAILED)
-//             error("Problem writing samples");
-
-//         for (int i = 0; i < n; i++) {
-//             left_out[i] = dry[0][i];
-//             right_out[i] = dry[1][i];
-//         }
-
-//         memset(x->left_buffer, 0.f, sizeof(float) * x->out_maxsize);
-//         memset(x->right_buffer, 0.f, sizeof(float) * x->out_maxsize);
-
-//     } else {
-//         for (int i = 0; i < n; i++) {
-//             left_out[i] = right_out[i]= 0.0;
-//         }
-//     }
-// }

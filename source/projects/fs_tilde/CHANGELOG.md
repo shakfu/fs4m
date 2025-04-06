@@ -15,12 +15,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [0.0.x]
 
-## [0.0.1]
 
-- Added generic command handling
+## [0.0.1]
 
 - Updated audio processing methods to work with fluidsynth 2.4.4
 
-- Added MIDI player, router and command handler
+- Fixed remaining tuning methods.
+
+- Added more consistent error/post mechanism.
+
+- Added bundler for standalone externals.
+
+- Resolved all remaining warnings.
+
+- Refactored long functions.
+
+- Converted old `fluidmax~` external to moderns idioms.
 
 - Created project.
