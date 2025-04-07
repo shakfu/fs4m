@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """bundler is a utility that helps bundle dynamic libraries inside macOS app bundles.
 
-usage: bundler [-h] [-x FIX_FILE] [-b] [-d DEST_DIR] [-p INSTALL_PATH]
-               [-s SEARCH_PATH] [-of] [-od] [-cd] [-ns] [-i IGNORE]
+It is a python3 translation of the cpp macdylibbundler utility by Marianne Gagnon 
+which can be found at https://github.com/auriamg/macdylibbundler
+
+usage: bundler [-h] [-b] [-d DEST_DIR] [-p INSTALL_PATH] [-s SEARCH_PATH] [-of]
+               [-od] [-cd] [-ns] [-i IGNORE]
+               target [target ...]
 
 bundler is a utility that helps bundle dynamic libraries inside macOS app
 bundles.
 
+positional arguments:
+  target                file to fix (executable or app plug-in)
+
 options:
   -h, --help            show this help message and exit
-  -x, --fix-file FIX_FILE
-                        file to fix (executable or app plug-in)
   -b, --bundle-deps     bundle dependencies
   -d, --dest-dir DEST_DIR
                         directory to send bundled libraries (relative to cwd)
@@ -21,13 +26,13 @@ options:
                         directory to add to list of locations searched
   -of, --overwrite-files
                         allow overwriting files in output directory
-  -od, --overwrite-dir  totally overwrite output directory if it already
-                        exists. implies --create-dir
+  -od, --overwrite-dir  totally overwrite output directory if it already exists.
+                        implies --create-dir
   -cd, --create-dir     creates output directory if necessary
   -ns, --no-codesign    disables ad-hoc codesigning
   -i, --ignore IGNORE   will ignore libraries in this directory
 
-e.g: bundler -od -b -x ./My.app/Contents/MacOS/demo -d ./My.app/Contents/libs/
+e.g: bundler -od -b -d My.app/Contents/libs/ My.app/Contents/MacOS/main
 """
 
 import argparse
@@ -44,7 +49,8 @@ from typing import Optional, List, Dict
 
 DEBUG = True
 COLOR = True
-CAVEAT = "MAY NOT CORRECTLY HANDLE THIS DEPENDENCY: Manually check the executable with 'otool -L'"
+CAVEAT = ("MAY NOT CORRECTLY HANDLE THIS DEPENDENCY: "
+          "Manually check the executable with 'otool -L'")
 
 # type aliases
 Pathlike = str | Path
@@ -54,8 +60,9 @@ Pathlike = str | Path
 
 class CustomFormatter(logging.Formatter):
     """Custom logging formatting class with color support."""
-    
-    class colors:
+
+    class color:
+        """text colors"""
         white = "\x1b[97;20m"
         grey = "\x1b[38;20m"
         green = "\x1b[32;20m"
@@ -64,15 +71,20 @@ class CustomFormatter(logging.Formatter):
         red = "\x1b[31;20m"
         bold_red = "\x1b[31;1m"
         reset = "\x1b[0m"
-    
-    cfmt = f"{colors.white}%(delta)s{colors.reset} - {{}}%(levelname)s{colors.reset} - {colors.white}%(name)s.%(funcName)s{colors.reset} - {colors.grey}%(message)s{colors.reset}"
+
+    cfmt = (
+        f"{color.white}%(delta)s{color.reset} - "
+        f"{{}}%(levelname)s{color.reset} - "
+        f"{color.white}%(name)s.%(funcName)s{color.reset} - "
+        f"{color.grey}%(message)s{color.reset}"
+    )
 
     FORMATS = {
-        logging.DEBUG: cfmt.format(colors.grey),
-        logging.INFO: cfmt.format(colors.green),
-        logging.WARNING: cfmt.format(colors.yellow),
-        logging.ERROR: cfmt.format(colors.red),
-        logging.CRITICAL: cfmt.format(colors.bold_red),
+        logging.DEBUG: cfmt.format(color.grey),
+        logging.INFO: cfmt.format(color.green),
+        logging.WARNING: cfmt.format(color.yellow),
+        logging.ERROR: cfmt.format(color.red),
+        logging.CRITICAL: cfmt.format(color.bold_red),
     }
 
     def __init__(self, use_color: bool = COLOR):
@@ -85,19 +97,19 @@ class CustomFormatter(logging.Formatter):
             log_fmt = self.fmt
         else:
             log_fmt = self.FORMATS[record.levelno]
-            duration = datetime.datetime.fromtimestamp(
-                record.relativeCreated / 1000, datetime.UTC
-            )
+        duration = datetime.datetime.fromtimestamp(
+            record.relativeCreated / 1000, datetime.UTC
+        )
         record.delta = duration.strftime("%H:%M:%S")
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
 
 # Configure logging
-strm_handler = logging.StreamHandler()
-strm_handler.setFormatter(CustomFormatter())
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(CustomFormatter())
 logging.basicConfig(
     level=logging.DEBUG if DEBUG else logging.INFO,
-    handlers=[strm_handler],
+    handlers=[stream_handler],
 )
 
 # ----------------------------------------------------------------------------
@@ -225,7 +237,7 @@ class Dependency:
         dependent_file = Path(dependent_file)
 
         if self._is_rpath(path):
-            original_file = self._search_filename_in_rpaths(path, dependent_file)
+            original_file = self.search_filename_in_rpaths(path, dependent_file)
         else:
             try:
                 original_file = path.resolve()
@@ -289,52 +301,6 @@ class Dependency:
             self.settings.add_search_path(prefix_path)
             return prefix_path
 
-    def _search_filename_in_rpaths(self, rpath_file: Path, dependent_file: Path) -> Path:
-        """Search for a filename in rpaths."""
-        fullpath = Path()
-        suffix = re.sub(r"^@[a-z_]+path/", "", str(rpath_file))
-
-        def check_path(path: Path) -> bool:
-            """Check if a path is valid."""
-            file_prefix = dependent_file.parent
-            if dependent_file != rpath_file:
-                path_to_check = Path()
-                if "@loader_path" in str(path):
-                    path_to_check = Path(str(path).replace("@loader_path/", str(file_prefix)))
-                elif "@rpath" in str(path):
-                    path_to_check = Path(str(path).replace("@rpath/", str(file_prefix)))
-
-                try:
-                    fullpath = path_to_check.resolve()
-                    self.parent.rpath_to_fullpath[rpath_file] = fullpath
-                    return True
-                except OSError:
-                    return False
-            return False
-
-        if rpath_file in self.parent.rpath_to_fullpath:
-            fullpath = self.parent.rpath_to_fullpath[rpath_file]
-        elif not check_path(rpath_file):
-            for rpath in self.parent.rpaths_per_file[dependent_file]:
-                if check_path(rpath / suffix):
-                    break
-
-            if rpath_file in self.parent.rpath_to_fullpath:
-                fullpath = self.parent.rpath_to_fullpath[rpath_file]
-
-        if not fullpath:
-            for search_path in self.settings.search_paths:
-                if (search_path / suffix).exists():
-                    fullpath = search_path / suffix
-                    break
-
-            if not fullpath:
-                self.log.warning("can't get path for '%s'", rpath_file)
-                fullpath = self._get_user_input_dir_for_file(suffix) / suffix
-                fullpath = fullpath.resolve()
-
-        return fullpath
-
     def _is_rpath(self, path: Path) -> bool:
         """Check if a path is an rpath."""
         return str(path).startswith("@rpath") or str(path).startswith("@loader_path")
@@ -354,6 +320,59 @@ class Dependency:
 
         for path in search_paths:
             self.settings.add_search_path(path)
+
+    def _change_install_name(self, binary_file: Path, old_name: Path | str, new_name: str) -> None:
+        """Change the install name of a file."""
+        command = f'install_name_tool -change "{old_name}" "{new_name}" "{binary_file}"'
+        if subprocess.call(command, shell=True) != 0:
+            self.log.error("An error occurred while trying to fix dependencies of %s", binary_file)
+            sys.exit(1)
+
+    def search_filename_in_rpaths(self, rpath_file: Path, dependent_file: Path) -> Path:
+        """Search for a filename in rpaths."""
+        fullpath = Path()
+        suffix = re.sub(r"^@[a-z_]+path/", "", str(rpath_file))
+
+        def _check_path(path: Path) -> bool:
+            """Check if a path is valid."""
+            file_prefix = dependent_file.parent
+            if dependent_file != rpath_file:
+                path_to_check = Path()
+                if "@loader_path" in str(path):
+                    path_to_check = Path(str(path).replace("@loader_path/", str(file_prefix)))
+                elif "@rpath" in str(path):
+                    path_to_check = Path(str(path).replace("@rpath/", str(file_prefix)))
+
+                try:
+                    fullpath = path_to_check.resolve()
+                    self.parent.rpath_to_fullpath[rpath_file] = fullpath
+                    return True
+                except OSError:
+                    return False
+            return False
+
+        if rpath_file in self.parent.rpath_to_fullpath:
+            fullpath = self.parent.rpath_to_fullpath[rpath_file]
+        elif not _check_path(rpath_file):
+            for rpath in self.parent.rpaths_per_file[dependent_file]:
+                if _check_path(rpath / suffix):
+                    break
+
+            if rpath_file in self.parent.rpath_to_fullpath:
+                fullpath = self.parent.rpath_to_fullpath[rpath_file]
+
+        if not fullpath:
+            for search_path in self.settings.search_paths:
+                if (search_path / suffix).exists():
+                    fullpath = search_path / suffix
+                    break
+
+            if not fullpath:
+                self.log.warning("can't get path for '%s'", rpath_file)
+                fullpath = self._get_user_input_dir_for_file(suffix) / suffix
+                fullpath = fullpath.resolve()
+
+        return fullpath
 
     def get_original_filename(self) -> str:
         """Get the original filename."""
@@ -404,13 +423,6 @@ class Dependency:
         # Fix symlinks
         for symlink in self.symlinks:
             self._change_install_name(file_to_fix, symlink, self.get_inner_path())
-
-    def _change_install_name(self, binary_file: Path, old_name: Path | str, new_name: str) -> None:
-        """Change the install name of a file."""
-        command = f'install_name_tool -change "{old_name}" "{new_name}" "{binary_file}"'
-        if subprocess.call(command, shell=True) != 0:
-            self.log.error("An error occurred while trying to fix dependencies of %s", binary_file)
-            sys.exit(1)
 
     def merge_if_same_as(self, dep2: "Dependency") -> bool:
         """Compares this dependency with another. If both refer to the same file,
@@ -573,7 +585,7 @@ class DylibBundler:
                 print(".", end="", flush=True)
                 original_path = dep.get_original_path()
                 if dep._is_rpath(original_path):
-                    original_path = dep._search_filename_in_rpaths(
+                    original_path = dep.search_filename_in_rpaths(
                         original_path, original_path
                     )
 
@@ -704,11 +716,12 @@ class DylibBundler:
         parser = argparse.ArgumentParser(
             prog='bundler',
             description='bundler is a utility that helps bundle dynamic libraries inside macOS app bundles.',
-            epilog=("e.g: bundler -od -b -x ./My.app/Contents/MacOS/demo -d ./My.app/Contents/libs/"))
+            epilog="e.g: bundler -od -b -d My.app/Contents/libs/ My.app/Contents/MacOS/main",
+        )
 
-        opt = parser.add_argument
+        arg = opt = parser.add_argument
 
-        opt("-x", "--fix-file", help="file to fix (executable or app plug-in)")
+        arg("target", nargs="+", help="file to fix (executable or app plug-in)")
         opt("-b", "--bundle-deps", help="bundle dependencies", action="store_true")
         opt("-d", "--dest-dir", help="directory to send bundled libraries (relative to cwd)")
         opt("-p", "--install-path", default="@executable_path/../libs/", help="'inner' path of bundled libraries (usually relative to executable")
@@ -720,8 +733,8 @@ class DylibBundler:
         opt("-i", "--ignore", help="will ignore libraries in this directory")
 
         args = parser.parse_args()
-        if args.fix_file:
-            settings.add_file_to_fix(args.fix_file)
+        for target in args.target:
+            settings.add_file_to_fix(target)
         if args.bundle_deps:
             settings.bundle_libs = True
         if args.install_path:
@@ -760,4 +773,3 @@ class DylibBundler:
 
 if __name__ == "__main__":
     DylibBundler.commandline()
-

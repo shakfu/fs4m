@@ -22,19 +22,12 @@ install_sf2:
 install_fs:
 	@./source/scripts/install_fluidsynth.sh
 
-# bundle: reset build install_sf2
-# 	@mkdir -p build && \
-# 		python3 source/scripts/bundler.py -od -b \
-# 			-x ./externals/fs~.mxo/Contents/MacOS/fs~ \
-# 			-d ./externals/fs~.mxo/Contents/libs/ \
-# 			-p @loader_path/../libs/
-
 bundle: reset build install_sf2
 	@mkdir -p build && \
-		python3 source/scripts/bundler2.py -od -b \
-			-x ./externals/fs~.mxo/Contents/MacOS/fs~ \
+		python3 source/scripts/bundler.py -od -b \
 			-d ./externals/fs~.mxo/Contents/libs/ \
-			-p @loader_path/../libs/
+			-p @loader_path/../libs/ \
+			./externals/fs~.mxo/Contents/MacOS/fs~
 
 build: reset
 	@mkdir -p build && \
