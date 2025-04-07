@@ -10,9 +10,14 @@ function download_sf2() {
 	fi
 }
 
+# function install_sf2() {\
+# 	mkdir -p ${SF2_DIR}
+# 	cp examples/sf2/*.sf2 ${SF2_DIR}
+# }
+
 function install_sf2() {\
 	mkdir -p ${SF2_DIR}
-	cp examples/sf2/*.sf2 ${SF2_DIR}
+	cp examples/sf2/GM.sf2 ${SF2_DIR}
 }
 
 
