@@ -1,63 +1,89 @@
 #!/usr/bin/env python3
 """bundler is a utility that helps bundle dynamic libraries inside macOS app bundles.
 
-It is a python3 translation of Marianne Gagnon's cpp-based dylibbundler from
-https://github.com/auriamg/macdylibbundler
+usage: bundler [-h] [-x FIX_FILE] [-b] [-d DEST_DIR] [-p INSTALL_PATH]
+               [-s SEARCH_PATH] [-of] [-od] [-cd] [-ns] [-i IGNORE]
+
+bundler is a utility that helps bundle dynamic libraries inside macOS app
+bundles.
+
+options:
+  -h, --help            show this help message and exit
+  -x, --fix-file FIX_FILE
+                        file to fix (executable or app plug-in)
+  -b, --bundle-deps     bundle dependencies
+  -d, --dest-dir DEST_DIR
+                        directory to send bundled libraries (relative to cwd)
+  -p, --install-path INSTALL_PATH
+                        'inner' path of bundled libraries (usually relative to
+                        executable
+  -s, --search-path SEARCH_PATH
+                        directory to add to list of locations searched
+  -of, --overwrite-files
+                        allow overwriting files in output directory
+  -od, --overwrite-dir  totally overwrite output directory if it already
+                        exists. implies --create-dir
+  -cd, --create-dir     creates output directory if necessary
+  -ns, --no-codesign    disables ad-hoc codesigning
+  -i, --ignore IGNORE   will ignore libraries in this directory
+
+e.g: bundler -od -b -x ./My.app/Contents/MacOS/demo -d ./My.app/Contents/libs/
 """
 
-import datetime
 import argparse
+import datetime
 import logging
 import os
 import re
-import sys
 import shutil
 import subprocess
+import sys
 import tempfile
-from typing import Optional
+from pathlib import Path
+from typing import Optional, List, Dict
 
 DEBUG = True
 COLOR = True
-
 CAVEAT = "MAY NOT CORRECTLY HANDLE THIS DEPENDENCY: Manually check the executable with 'otool -L'"
+
+# type aliases
+Pathlike = str | Path
 
 # ----------------------------------------------------------------------------
 # logging config
 
 class CustomFormatter(logging.Formatter):
-    """custom logging formatting class"""
-
-    white = "\x1b[97;20m"
-    grey = "\x1b[38;20m"
-    green = "\x1b[32;20m"
-    cyan = "\x1b[36;20m"
-    yellow = "\x1b[33;20m"
-    red = "\x1b[31;20m"
-    bold_red = "\x1b[31;1m"
-    reset = "\x1b[0m"
-    fmt = "%(delta)s - %(levelname)s - %(name)s.%(funcName)s - %(message)s"
-    cfmt = (f"{white}%(delta)s{reset} - "
-            f"{{}}%(levelname)s{{}} - "
-            f"{white}%(name)s.%(funcName)s{reset} - "
-            f"{grey}%(message)s{reset}")
+    """Custom logging formatting class with color support."""
+    
+    class colors:
+        white = "\x1b[97;20m"
+        grey = "\x1b[38;20m"
+        green = "\x1b[32;20m"
+        cyan = "\x1b[36;20m"
+        yellow = "\x1b[33;20m"
+        red = "\x1b[31;20m"
+        bold_red = "\x1b[31;1m"
+        reset = "\x1b[0m"
+    
+    cfmt = f"{colors.white}%(delta)s{colors.reset} - {{}}%(levelname)s{colors.reset} - {colors.white}%(name)s.%(funcName)s{colors.reset} - {colors.grey}%(message)s{colors.reset}"
 
     FORMATS = {
-        logging.DEBUG: cfmt.format(grey, reset),
-        logging.INFO: cfmt.format(green, reset),
-        logging.WARNING: cfmt.format(yellow, reset),
-        logging.ERROR: cfmt.format(red, reset),
-        logging.CRITICAL: cfmt.format(bold_red, reset),
+        logging.DEBUG: cfmt.format(colors.grey),
+        logging.INFO: cfmt.format(colors.green),
+        logging.WARNING: cfmt.format(colors.yellow),
+        logging.ERROR: cfmt.format(colors.red),
+        logging.CRITICAL: cfmt.format(colors.bold_red),
     }
 
     def __init__(self, use_color: bool = COLOR):
         self.use_color = use_color
+        self.fmt = "%(delta)s - %(levelname)s - %(name)s.%(funcName)s - %(message)s"
 
     def format(self, record: logging.LogRecord) -> str:
-        """custom logger formatting method"""
+        """Format the log record with color if enabled."""
         if not self.use_color:
             log_fmt = self.fmt
         else:
-            # log_fmt = self.FORMATS.get(record.levelno)
             log_fmt = self.FORMATS[record.levelno]
             duration = datetime.datetime.fromtimestamp(
                 record.relativeCreated / 1000, datetime.UTC
@@ -66,7 +92,7 @@ class CustomFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
 
-
+# Configure logging
 strm_handler = logging.StreamHandler()
 strm_handler.setFormatter(CustomFormatter())
 logging.basicConfig(
@@ -74,49 +100,35 @@ logging.basicConfig(
     handlers=[strm_handler],
 )
 
-
 # ----------------------------------------------------------------------------
 # classes
 
 class Settings:
-    """Settings for a DylibBundler instance.
-
-    Args:
-        dest_dir: The directory to store the bundled libraries.
-        overwrite_files: Whether to overwrite existing files in the output directory.
-        overwrite_dir: Whether to overwrite the output directory if it already exists.
-        create_dir: Whether to create the output directory if it doesn't exist.
-        codesign: Whether to codesign the bundled libraries.
-        bundle_libs: Whether to bundle the libraries.
-        inside_lib_path: The path to the bundled libraries inside the app bundle.
-        files_to_fix: The files to fix.
-        prefixes_to_ignore: The prefixes to ignore.
-        search_paths: The search paths.
-    """
+    """Settings for a DylibBundler instance."""
 
     def __init__(
         self,
-        dest_dir: str = "./libs/",
+        dest_dir: Pathlike = Path("./libs/"),
         overwrite_files: bool = False,
         overwrite_dir: bool = False,
         create_dir: bool = False,
         codesign: bool = True,
         bundle_libs: bool = True,
         inside_lib_path: str = "@executable_path/../libs/",
-        files_to_fix: Optional[list[str]] = None,
-        prefixes_to_ignore: Optional[list[str]] = None,
-        search_paths: Optional[list[str]] = None,
+        files_to_fix: Optional[List[Pathlike]] = None,
+        prefixes_to_ignore: Optional[List[Pathlike]] = None,
+        search_paths: Optional[List[Pathlike]] = None,
     ):
-        self.dest_dir: str = self.ensure_endswith_slash(dest_dir)
-        self.overwrite_files: bool = overwrite_files
-        self.overwrite_dir: bool = overwrite_dir
-        self.create_dir: bool = create_dir
-        self.codesign: bool = codesign
-        self.bundle_libs: bool = bundle_libs
-        self.inside_lib_path: str = self.ensure_endswith_slash(inside_lib_path)
-        self.files_to_fix: list[str] = files_to_fix or []
-        self.prefixes_to_ignore: list[str] = prefixes_to_ignore or []
-        self.search_paths: list[str] = search_paths or []
+        self.dest_dir = Path(dest_dir)
+        self.overwrite_files = overwrite_files
+        self.overwrite_dir = overwrite_dir
+        self.create_dir = create_dir
+        self.codesign = codesign
+        self.bundle_libs = bundle_libs
+        self.inside_lib_path = inside_lib_path
+        self.files_to_fix = [Path(f) for f in (files_to_fix or [])]
+        self.prefixes_to_ignore = [Path(p) for p in (prefixes_to_ignore or [])]
+        self.search_paths = [Path(p) for p in (search_paths or [])]
 
     @property
     def can_overwrite_files(self) -> bool:
@@ -153,44 +165,38 @@ class Settings:
         """The number of search paths."""
         return len(self.search_paths)
 
-    def ensure_endswith_slash(self, path: str) -> str:
-        """Ensure path ends with '/'."""
-        if not path.endswith("/"):
-            path += "/"
-        return path
-
-    def add_search_path(self, path: str) -> None:
+    def add_search_path(self, path: Pathlike) -> None:
         """Add a search path."""
-        self.search_paths.append(path)
+        self.search_paths.append(Path(path))
 
-    def search_path(self, index: int) -> str:
+    def search_path(self, index: int) -> Path:
         """Get a search path by index."""
         return self.search_paths[index]
 
-    def add_file_to_fix(self, path: str) -> None:
+    def add_file_to_fix(self, path: Pathlike) -> None:
         """Add a file to fix."""
-        self.files_to_fix.append(path)
+        self.files_to_fix.append(Path(path))
 
-    def file_to_fix(self, index: int) -> str:
+    def file_to_fix(self, index: int) -> Path:
         """Get a file to fix by index."""
         return self.files_to_fix[index]
 
-    def ignore_prefix(self, prefix: str) -> None:
+    def ignore_prefix(self, prefix: Pathlike) -> None:
         """Ignore a prefix."""
-        if not prefix.endswith("/"):
-            prefix += "/"
-        self.prefixes_to_ignore.append(prefix)
+        self.prefixes_to_ignore.append(Path(prefix))
 
-    def is_system_library(self, prefix: str) -> bool:
+    def is_system_library(self, prefix: Pathlike) -> bool:
         """Check if a prefix is a system library."""
+        prefix = str(prefix)
         return prefix.startswith("/usr/lib/") or prefix.startswith("/System/Library/")
 
-    def is_prefix_ignored(self, prefix: str) -> bool:
+    def is_prefix_ignored(self, prefix: Pathlike) -> bool:
         """Check if a prefix is ignored."""
-        return prefix in self.prefixes_to_ignore
+        return Path(prefix) in self.prefixes_to_ignore
 
-    def is_prefix_bundled(self, prefix: str) -> bool:
+    def is_prefix_bundled(self, prefix: Pathlike) -> bool:
         """Check if a prefix is bundled."""
+        prefix = str(prefix)
         if ".framework" in prefix:
             return False
         if "@executable_path" in prefix:
@@ -203,30 +209,26 @@ class Settings:
 
 
 class Dependency:
-    """A dependency of a file.
+    """A dependency of a file."""
 
-    Args:
-        settings: The settings for a DylibBundler instance.
-        path: The path to the dependency.
-        dependent_file: The file that depends on the dependency.
-    """
-
-    def __init__(self, parent: "DylibBundler", path: str, dependent_file: str):
+    def __init__(self, parent: "DylibBundler", path: Pathlike, dependent_file: Pathlike):
         self.parent = parent
         self.settings = parent.settings
         self.filename = ""
-        self.prefix = ""
-        self.symlinks: list[str] = []
+        self.prefix = Path()
+        self.symlinks: List[Path] = []
         self.new_name = ""
         self.log = logging.getLogger(self.__class__.__name__)
 
         # Resolve the original file path
-        path = path.strip()
+        path = Path(str(path).strip())
+        dependent_file = Path(dependent_file)
+
         if self._is_rpath(path):
             original_file = self._search_filename_in_rpaths(path, dependent_file)
         else:
             try:
-                original_file = os.path.realpath(path)
+                original_file = path.resolve()
             except OSError:
                 self.log.warning("Cannot resolve path '%s'", path)
                 original_file = path
@@ -235,122 +237,111 @@ class Dependency:
         if original_file != path:
             self.add_symlink(path)
 
-        self.filename = os.path.basename(original_file)
-        self.prefix = os.path.dirname(original_file) + "/"
+        self.filename = original_file.name
+        self.prefix = original_file.parent
 
         # Check if this dependency should be bundled
         if not self.settings.is_prefix_bundled(self.prefix):
             return
 
         # Check if the lib is in a known location
-        if not self.prefix or not os.path.exists(self.prefix + self.filename):
-            if self.settings.search_path_amount == 0:
+        if not self.prefix or not (self.prefix / self.filename).exists():
+            if not self.settings.search_paths:
                 self._init_search_paths()
 
             # Check if file is contained in one of the paths
             for search_path in self.settings.search_paths:
-                if os.path.exists(search_path + self.filename):
+                if (search_path / self.filename).exists():
                     self.log.info(f"FOUND {self.filename} in {search_path}")
                     self.prefix = search_path
                     break
 
         # If location still unknown, ask user for search path
         if not self.settings.is_prefix_ignored(self.prefix) and (
-            not self.prefix or not os.path.exists(self.prefix + self.filename)
+            not self.prefix or not (self.prefix / self.filename).exists()
         ):
             self.log.warning("Library %s has an incomplete name (location unknown)", self.filename)
             self.settings.add_search_path(self._get_user_input_dir_for_file(self.filename))
 
         self.new_name = self.filename
 
-    def _get_user_input_dir_for_file(self, filename: str) -> str:
+    def _get_user_input_dir_for_file(self, filename: str) -> Path:
         """Get a user input directory for a file."""
-        search_path_amount = self.settings.search_path_amount
-        for n in range(search_path_amount):
-            search_path = self.settings.search_path(n)
-            if search_path and not search_path.endswith('/'):
-                search_path += "/"
-
-            if os.path.exists(search_path + filename):
-                self.log.info("%s was found. %s", search_path + filename, CAVEAT)
+        for search_path in self.settings.search_paths:
+            if (search_path / filename).exists():
+                self.log.info("%s was found. %s", search_path / filename, CAVEAT)
                 return search_path
 
         while True:
             sys.stdout.flush()
-
             prefix = input("Please specify the directory where this library is "
-                           "located (or enter 'quit' to abort): ")
+                         "located (or enter 'quit' to abort): ")
 
             if prefix == "quit":
                 sys.exit(1)
 
-            if prefix and not prefix.endswith('/'):
-                prefix += "/"
-
-            if not os.path.exists(prefix + filename):
-                self.log.info(f"{prefix + filename} does not exist. Try again")
+            prefix_path = Path(prefix)
+            if not (prefix_path / filename).exists():
+                self.log.info(f"{prefix_path / filename} does not exist. Try again")
                 continue
 
-            else:
-                self.log.info("%s was found. %s", prefix + filename, CAVEAT)
-                self.settings.add_search_path(prefix)
-                return prefix
+            self.log.info("%s was found. %s", prefix_path / filename, CAVEAT)
+            self.settings.add_search_path(prefix_path)
+            return prefix_path
 
-    def _search_filename_in_rpaths(self, rpath_file: str, dependent_file: str) -> str:
+    def _search_filename_in_rpaths(self, rpath_file: Path, dependent_file: Path) -> Path:
         """Search for a filename in rpaths."""
-        fullpath = ""
-        suffix = re.sub(r"^@[a-z_]+path/", "", rpath_file)
+        fullpath = Path()
+        suffix = re.sub(r"^@[a-z_]+path/", "", str(rpath_file))
 
-        def check_path(path: str) -> bool:
+        def check_path(path: Path) -> bool:
             """Check if a path is valid."""
-            file_prefix = dependent_file[0:dependent_file.rfind('/') + 1]
+            file_prefix = dependent_file.parent
             if dependent_file != rpath_file:
-                path_to_check = ""
-                if "@loader_path" in path:
-                    path_to_check = re.sub(r"@loader_path/", file_prefix, path)
-                elif "@rpath" in path:
-                    path_to_check = re.sub(r"@rpath/", file_prefix, path)
+                path_to_check = Path()
+                if "@loader_path" in str(path):
+                    path_to_check = Path(str(path).replace("@loader_path/", str(file_prefix)))
+                elif "@rpath" in str(path):
+                    path_to_check = Path(str(path).replace("@rpath/", str(file_prefix)))
 
-                fullpath = os.path.abspath(path_to_check)
-                self.parent.rpath_to_fullpath[rpath_file] = fullpath
-                return True
+                try:
+                    fullpath = path_to_check.resolve()
+                    self.parent.rpath_to_fullpath[rpath_file] = fullpath
+                    return True
+                except OSError:
+                    return False
             return False
 
         if rpath_file in self.parent.rpath_to_fullpath:
             fullpath = self.parent.rpath_to_fullpath[rpath_file]
-
         elif not check_path(rpath_file):
             for rpath in self.parent.rpaths_per_file[dependent_file]:
-                if not rpath.endswith('/'):
-                    rpath += "/"
-                if check_path(rpath + suffix):
+                if check_path(rpath / suffix):
                     break
 
             if rpath_file in self.parent.rpath_to_fullpath:
                 fullpath = self.parent.rpath_to_fullpath[rpath_file]
 
         if not fullpath:
-            search_path_amount = self.settings.search_path_amount
-            for n in range(search_path_amount):
-                search_path = self.settings.search_path(n)
-                if os.path.exists(search_path + suffix):
-                    fullpath = search_path + suffix
+            for search_path in self.settings.search_paths:
+                if (search_path / suffix).exists():
+                    fullpath = search_path / suffix
                     break
 
             if not fullpath:
                 self.log.warning("can't get path for '%s'", rpath_file)
-                fullpath = self._get_user_input_dir_for_file(suffix) + suffix
-                fullpath = os.path.abspath(fullpath)
+                fullpath = self._get_user_input_dir_for_file(suffix) / suffix
+                fullpath = fullpath.resolve()
 
         return fullpath
 
-    def _is_rpath(self, path: str) -> bool:
+    def _is_rpath(self, path: Path) -> bool:
         """Check if a path is an rpath."""
-        return path.startswith("@rpath") or path.startswith("@loader_path")
+        return str(path).startswith("@rpath") or str(path).startswith("@loader_path")
 
     def _init_search_paths(self) -> None:
         """Initialize search paths from environment variables."""
-        search_paths = []
+        search_paths: List[Pathlike] = []
 
         for env_var in [
             "DYLD_LIBRARY_PATH",
@@ -359,30 +350,28 @@ class Dependency:
         ]:
             if env_var in os.environ:
                 paths = os.environ[env_var].split(":")
-                search_paths.extend(paths)
+                search_paths.extend(Path(p) for p in paths)
 
         for path in search_paths:
-            if not path.endswith("/"):
-                path += "/"
             self.settings.add_search_path(path)
 
     def get_original_filename(self) -> str:
         """Get the original filename."""
         return self.filename
 
-    def get_original_path(self) -> str:
+    def get_original_path(self) -> Path:
         """Get the original path."""
-        return self.prefix + self.filename
+        return self.prefix / self.filename
 
-    def get_install_path(self) -> str:
+    def get_install_path(self) -> Path:
         """Get the install path."""
-        return self.settings.dest_dir + self.new_name
+        return self.settings.dest_dir / self.new_name
 
     def get_inner_path(self) -> str:
         """Get the inner path."""
-        return self.settings.inside_lib_path + self.new_name
+        return f"{self.settings.inside_lib_path}{self.new_name}"
 
-    def add_symlink(self, symlink: str) -> None:
+    def add_symlink(self, symlink: Path) -> None:
         """Add a symlink."""
         if symlink not in self.symlinks:
             self.symlinks.append(symlink)
@@ -391,7 +380,7 @@ class Dependency:
         """Get the number of symlinks."""
         return len(self.symlinks)
 
-    def get_symlink(self, index: int) -> str:
+    def get_symlink(self, index: int) -> Path:
         """Get a symlink by index."""
         return self.symlinks[index]
 
@@ -406,7 +395,7 @@ class Dependency:
                 self.get_install_path())
             sys.exit(1)
 
-    def fix_file_that_depends_on_me(self, file_to_fix: str) -> None:
+    def fix_file_that_depends_on_me(self, file_to_fix: Path) -> None:
         """Fix dependencies in a file."""
         self._change_install_name(
             file_to_fix, self.get_original_path(), self.get_inner_path()
@@ -416,7 +405,7 @@ class Dependency:
         for symlink in self.symlinks:
             self._change_install_name(file_to_fix, symlink, self.get_inner_path())
 
-    def _change_install_name(self, binary_file: str, old_name: str, new_name: str) -> None:
+    def _change_install_name(self, binary_file: Path, old_name: Path | str, new_name: str) -> None:
         """Change the install name of a file."""
         command = f'install_name_tool -change "{old_name}" "{new_name}" "{binary_file}"'
         if subprocess.call(command, shell=True) != 0:
@@ -440,22 +429,18 @@ class Dependency:
 
 
 class DylibBundler:
-    """A DylibBundler instance.
-
-    Args:
-        settings: The settings for a DylibBundler instance.
-    """
+    """A DylibBundler instance."""
 
     def __init__(self, settings: Optional[Settings] = None):
         self.settings = settings or Settings()
-        self.deps: list[Dependency] = []
-        self.deps_per_file: dict[str, list[Dependency]] = {}
-        self.deps_collected: dict[str, bool] = {}
-        self.rpaths_per_file: dict[str, list[str]] = {}
-        self.rpath_to_fullpath: dict[str, str] = {}
+        self.deps: List[Dependency] = []
+        self.deps_per_file: Dict[Path, List[Dependency]] = {}
+        self.deps_collected: Dict[Path, bool] = {}
+        self.rpaths_per_file: Dict[Path, List[Path]] = {}
+        self.rpath_to_fullpath: Dict[Path, Path] = {}
         self.log = logging.getLogger(self.__class__.__name__)
 
-    def collect_dependencies(self, filename: str) -> None:
+    def collect_dependencies(self, filename: Path) -> None:
         """Collect dependencies for a given file."""
         if filename in self.deps_collected:
             return
@@ -481,10 +466,9 @@ class DylibBundler:
 
         self.deps_collected[filename] = True
 
-
-    def _collect_dependency_lines(self, filename: str) -> list[str]:
+    def _collect_dependency_lines(self, filename: Path) -> List[str]:
         """Execute otool -l and collect dependency lines."""
-        if not os.path.exists(filename):
+        if not filename.exists():
             self.log.error("Cannot find file %s to read its dependencies", filename)
             sys.exit(1)
 
@@ -513,10 +497,10 @@ class DylibBundler:
 
         return lines
 
-    def collect_rpaths(self, filename: str) -> None:
+    def collect_rpaths(self, filename: Path) -> None:
         """Collect rpaths for a given file."""
-        if not os.path.exists(filename):
-            self.log.warning(f"can't collect rpaths for nonexistent file '%s'", filename)
+        if not filename.exists():
+            self.log.warning("can't collect rpaths for nonexistent file '%s'", filename)
             return
 
         cmd = f'otool -l "{filename}"'
@@ -540,7 +524,7 @@ class DylibBundler:
                     self.log.warning("Unexpected LC_RPATH format")
                     continue
                 start_pos += 5
-                rpath = line[start_pos:end_pos]
+                rpath = Path(line[start_pos:end_pos])
                 if filename not in self.rpaths_per_file:
                     self.rpaths_per_file[filename] = []
                 self.rpaths_per_file[filename].append(rpath)
@@ -551,8 +535,7 @@ class DylibBundler:
                 read_rpath = True
                 pos += 1
 
-
-    def add_dependency(self, path: str, filename: str) -> None:
+    def add_dependency(self, path: Pathlike, filename: Path) -> None:
         """Add a new dependency."""
         dep = Dependency(self, path, filename)
 
@@ -579,7 +562,6 @@ class DylibBundler:
         if not in_deps_per_file:
             self.deps_per_file[filename] = self.deps_per_file.get(filename, []) + [dep]
 
-
     def collect_sub_dependencies(self) -> None:
         """Recursively collect each dependency's dependencies."""
         print(".", end="", flush=True)
@@ -600,7 +582,6 @@ class DylibBundler:
             if len(self.deps) == dep_amount:
                 break  # no more dependencies were added on this iteration, stop searching
 
-
     def done_with_deps_go(self) -> None:
         """Process all collected dependencies."""
         print()
@@ -620,7 +601,7 @@ class DylibBundler:
 
         for i in range(self.settings.file_to_fix_amount - 1, -1, -1):
             file_to_fix = self.settings.file_to_fix(i)
-            self.log.info("* Processing %s", file_to_fix)
+            self.log.info("Processing %s", file_to_fix)
             try:
                 shutil.copy2(file_to_fix, file_to_fix)  # to set write permission
             except shutil.SameFileError:
@@ -629,13 +610,12 @@ class DylibBundler:
             self.fix_rpaths_on_file(file_to_fix, file_to_fix)
             self.adhoc_codesign(file_to_fix)
 
-
     def create_dest_dir(self) -> None:
         """Create the destination directory if needed."""
         dest_dir = self.settings.dest_dir
         self.log.info("Checking output directory %s", dest_dir)
 
-        dest_exists = os.path.exists(dest_dir)
+        dest_exists = dest_dir.exists()
 
         if dest_exists and self.settings.can_overwrite_dir:
             self.log.info("Erasing old output directory %s", dest_dir)
@@ -650,7 +630,7 @@ class DylibBundler:
             if self.settings.can_create_dir:
                 self.log.info("Creating output directory %s", dest_dir)
                 try:
-                    os.makedirs(dest_dir)
+                    dest_dir.mkdir(parents=True)
                 except OSError:
                     self.log.error("An error occurred while creating dest folder.")
                     sys.exit(1)
@@ -658,8 +638,7 @@ class DylibBundler:
                 self.log.error("Dest folder does not exist. Create it or pass the appropriate flag for automatic dest dir creation.")
                 sys.exit(1)
 
-
-    def change_lib_paths_on_file(self, file_to_fix: str) -> None:
+    def change_lib_paths_on_file(self, file_to_fix: Path) -> None:
         """Change library paths in a file."""
         if file_to_fix not in self.deps_collected:
             print("    ", end="")
@@ -671,8 +650,7 @@ class DylibBundler:
         for dep in deps_in_file:
             dep.fix_file_that_depends_on_me(file_to_fix)
 
-
-    def fix_rpaths_on_file(self, original_file: str, file_to_fix: str) -> None:
+    def fix_rpaths_on_file(self, original_file: Path, file_to_fix: Path) -> None:
         """Fix rpaths in a file."""
         rpaths_to_fix = self.rpaths_per_file.get(original_file, [])
 
@@ -681,8 +659,7 @@ class DylibBundler:
             if subprocess.call(command, shell=True) != 0:
                 self.log.error("An error occurred while trying to fix dependencies of %s", file_to_fix)
 
-
-    def adhoc_codesign(self, file: str) -> None:
+    def adhoc_codesign(self, file: Path) -> None:
         """Apply ad-hoc code signing to a file."""
         if not self.settings.can_codesign:
             return
@@ -697,11 +674,11 @@ class DylibBundler:
             except subprocess.CalledProcessError:
                 is_arm = False
 
-            temp_dir = os.path.join(os.getenv("TMPDIR", "/tmp"), "dylibbundler.XXXXXXXX")
-            filename = os.path.basename(file)
+            temp_dir = Path(tempfile.gettempdir()) / "dylibbundler.XXXXXXXX"
+            filename = file.name
             try:
-                temp_dir = tempfile.mkdtemp(prefix="dylibbundler.")
-                temp_file = os.path.join(temp_dir, filename)
+                temp_dir = Path(tempfile.mkdtemp(prefix="dylibbundler."))
+                temp_file = temp_dir / filename
 
                 # Copy file to temp location
                 shutil.copy2(file, temp_file)
@@ -727,13 +704,13 @@ class DylibBundler:
         parser = argparse.ArgumentParser(
             prog='bundler',
             description='bundler is a utility that helps bundle dynamic libraries inside macOS app bundles.',
-            epilog=("e.g: bundler -od -b -x My.app/Contents/MacOS/demo -d My.app/Contents/libs/"))
+            epilog=("e.g: bundler -od -b -x ./My.app/Contents/MacOS/demo -d ./My.app/Contents/libs/"))
 
         opt = parser.add_argument
 
         opt("-x", "--fix-file", help="file to fix (executable or app plug-in)")
         opt("-b", "--bundle-deps", help="bundle dependencies", action="store_true")
-        opt("-d", "--dest-dir",  default="./libs/", help="directory to send bundled libraries (relative to cwd)")
+        opt("-d", "--dest-dir", help="directory to send bundled libraries (relative to cwd)")
         opt("-p", "--install-path", default="@executable_path/../libs/", help="'inner' path of bundled libraries (usually relative to executable")
         opt("-s", "--search-path", help="directory to add to list of locations searched")
         opt("-of", "--overwrite-files", help="allow overwriting files in output directory", action="store_true")
@@ -752,7 +729,7 @@ class DylibBundler:
         if args.ignore:
             settings.ignore_prefix(args.ignore)
         if args.dest_dir:
-            settings.dest_dir = args.dest_dir
+            settings.dest_dir = Path(args.dest_dir)
         if args.overwrite_files:
             settings.overwrite_files = True
         if args.overwrite_dir:
@@ -772,7 +749,6 @@ class DylibBundler:
         # create instance
         bundler = cls(settings)
 
-        # print("* Collecting dependencies", end="", flush=True)
         bundler.log.info("Collecting dependencies")
 
         # Collect dependencies

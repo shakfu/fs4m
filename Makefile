@@ -24,19 +24,17 @@ install_fs:
 
 # bundle: reset build install_sf2
 # 	@mkdir -p build && \
-# 		g++ -O3 -o build/bundler source/scripts/bundler.cpp && \
-# 		build/bundler -od -b \
-# 			-x "./externals/fs~.mxo/Contents/MacOS/fs~" \
-# 			-d "./externals/fs~.mxo/Contents/libs/" \
-# 			-p "@loader_path/../libs/"
+# 		python3 source/scripts/bundler.py -od -b \
+# 			-x ./externals/fs~.mxo/Contents/MacOS/fs~ \
+# 			-d ./externals/fs~.mxo/Contents/libs/ \
+# 			-p @loader_path/../libs/
 
 bundle: reset build install_sf2
 	@mkdir -p build && \
-		python3 source/scripts/bundler.py -od -b \
+		python3 source/scripts/bundler2.py -od -b \
 			-x ./externals/fs~.mxo/Contents/MacOS/fs~ \
 			-d ./externals/fs~.mxo/Contents/libs/ \
 			-p @loader_path/../libs/
-
 
 build: reset
 	@mkdir -p build && \
