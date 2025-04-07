@@ -22,16 +22,23 @@ install_sf2:
 install_fs:
 	@./source/scripts/install_fluidsynth.sh
 
+# bundle: reset build install_sf2
+# 	@mkdir -p build && \
+# 		g++ -O3 -o build/bundler source/scripts/bundler.cpp && \
+# 		build/bundler -od -b \
+# 			-x "./externals/fs~.mxo/Contents/MacOS/fs~" \
+# 			-d "./externals/fs~.mxo/Contents/libs/" \
+# 			-p "@loader_path/../libs/"
+
 bundle: reset build install_sf2
 	@mkdir -p build && \
-		g++ -O3 -o build/bundler source/scripts/bundler.cpp && \
-		build/bundler -od -b -x ./externals/fs~.mxo/Contents/MacOS/fs~ -d ./externals/fs~.mxo/Contents/Resources/libs/
+		python3 source/scripts/bundler.py -od -b \
+			-x ./externals/fs~.mxo/Contents/MacOS/fs~ \
+			-d ./externals/fs~.mxo/Contents/libs/ \
+			-p @loader_path/../libs/
 
-# bundle: reset build
-# 	@mkdir -p build && \
-# 		python3 source/scripts/bundler.py -od -b -x ./externals/fs~.mxo/Contents/MacOS/fs~ -d ./externals/fs~.mxo/Contents/Resources/libs/
 
-build:
+build: reset
 	@mkdir -p build && \
 		cd build && \
 		cmake -GXcode .. -DENABLE_HOMEBREW=ON && \

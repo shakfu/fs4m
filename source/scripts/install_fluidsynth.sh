@@ -16,7 +16,7 @@ function install_fluidsynth() {
 	if [ ! -f ${THIRDPARTY}/install/lib/libfluidsynth.a ]; then
 		rm -rf ${THIRDPARTY}/fluidsynth && \
 		mkdir -p ${THIRDPARTY} && \
-		git clone --depth=1 {REPO} ${THIRDPARTY}/fluidsynth && \
+		git clone --depth=1 ${REPO} ${THIRDPARTY}/fluidsynth && \
 		cd ${SRC} && \
 		mkdir build && cd build && \
 		cmake .. \

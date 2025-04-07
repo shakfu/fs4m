@@ -1,4 +1,4 @@
-SF2_DIR=externals/fluidsynth~.mxo/Contents/Resources/sf2
+SF2_DIR=externals/fs~.mxo/Contents/Resources/sf2
 
 function download_sf2() {
 	mkdir -p ${SF2_DIR}
