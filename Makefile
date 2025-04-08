@@ -24,7 +24,7 @@ install_fs:
 
 bundle: reset build install_sf2
 	@mkdir -p build && \
-		python3 source/scripts/bundler.py -od -b \
+		python3 source/scripts/bundler.py -od \
 			-d ./externals/fs~.mxo/Contents/libs/ \
 			-p @loader_path/../libs/ \
 			./externals/fs~.mxo/Contents/MacOS/fs~
