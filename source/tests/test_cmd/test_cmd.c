@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 
             fclose(ostream);
             if (size)
-                printf("size: %d buf: %s\n", size, buf);
+                printf("size: %zd buf: %s\n", size, buf);
             free(buf);
         }   
 

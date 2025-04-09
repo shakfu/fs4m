@@ -591,7 +591,7 @@ void fs_select(t_fs* x, t_symbol* s, short argc, t_atom* argv)
 void fs_reverb(t_fs* x, t_symbol* s, short argc, t_atom* argv)
 {
     int res;
-    t_fs_fx_reverb r;
+    t_fs_fx_reverb r = {0};
     r.fx_group = -1;
 
     if (argc == 0) {
@@ -686,7 +686,7 @@ exception:
 void fs_chorus(t_fs* x, t_symbol* s, short argc, t_atom* argv)
 {
     int res;
-    t_fs_fx_chorus c;
+    t_fs_fx_chorus c = {0};
 
     if (argc == 0) {
         fluid_synth_chorus_on(x->synth, c.fx_group, 1);

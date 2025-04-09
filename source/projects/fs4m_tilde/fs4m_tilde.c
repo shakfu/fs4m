@@ -41,7 +41,7 @@ void fm_mute(t_fm* x);
 t_symbol* fm_locate_path_from_symbol(t_fm* x, t_symbol* s);
 t_max_err fm_load(t_fm* x, t_symbol* sfont);
 t_max_err fm_play(t_fm* x, t_symbol* midifile);
-t_max_err fm_stop(t_fm*);
+t_max_err fm_stop(t_fm* x);
 void fm_note(t_fm* x, t_symbol* s, long argc, t_atom* argv);
 t_max_err fm_prog(t_fm* x, t_symbol* s, long argc, t_atom* argv);
 t_max_err fm_cmd(t_fm* x, t_symbol* s, long argc, t_atom* argv);
