@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """bundler is a utility that helps bundle dynamic libraries inside macOS app bundles.
 
-It is a python3 translation of the c++ macdylibbundler utility by Marianne Gagnon 
+It is a python3 translation of the c++ macdylibbundler utility by Marianne Gagnon
 which can be found at https://github.com/auriamg/macdylibbundler
 
 usage: bundler [-h] [-d DEST_DIR] [-p INSTALL_PATH] [-s SEARCH_PATH] [-od]
@@ -46,7 +46,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Optional, List, Dict, NoReturn
+from typing import Dict, List, Optional
 
 CAVEAT = ("MAY NOT CORRECTLY HANDLE THIS DEPENDENCY: "
           "Manually check the executable with 'otool -L'")
@@ -128,7 +128,7 @@ class CustomFormatter(logging.Formatter):
 
 def setup_logging(debug: bool = True, use_color: bool = True) -> None:
     """Configure logging for the application.
-    
+
     Args:
         debug: Whether to enable debug logging
         use_color: Whether to use colored output
@@ -148,12 +148,12 @@ class Dependency:
 
     def __init__(self, parent: "DylibBundler", path: Pathlike, dependent_file: Pathlike):
         """Initialize a new dependency.
-        
+
         Args:
             parent: The parent DylibBundler instance
             path: The path to the dependency
             dependent_file: The file that depends on this dependency
-            
+
         Raises:
             FileError: If the dependency cannot be resolved
             ConfigurationError: If the dependency configuration is invalid
@@ -217,13 +217,13 @@ class Dependency:
 
     def _get_user_input_dir_for_file(self, filename: str) -> Path:
         """Get a user input directory for a file.
-        
+
         Args:
             filename: The name of the file to find
-            
+
         Returns:
             The directory containing the file
-            
+
         Raises:
             ConfigurationError: If no valid directory is provided
         """
@@ -251,10 +251,10 @@ class Dependency:
 
     def _is_rpath(self, path: Path) -> bool:
         """Check if a path is an rpath.
-        
+
         Args:
             path: The path to check
-            
+
         Returns:
             True if the path is an rpath, False otherwise
         """
@@ -278,12 +278,12 @@ class Dependency:
 
     def _change_install_name(self, binary_file: Path, old_name: Pathlike, new_name: str) -> None:
         """Change the install name of a file.
-        
+
         Args:
             binary_file: The file to modify
             old_name: The old install name
             new_name: The new install name
-            
+
         Raises:
             CommandError: If the install_name_tool command fails
         """
@@ -417,7 +417,7 @@ class DylibBundler:
         search_paths: Optional[List[Pathlike]] = None,
     ):
         """Initialize a new DylibBundler instance.
-        
+
         Args:
             dest_dir: Directory to send bundled libraries
             overwrite_dir: Whether to overwrite existing output directory
@@ -427,7 +427,7 @@ class DylibBundler:
             files_to_fix: List of files to process
             prefixes_to_ignore: List of prefixes to ignore
             search_paths: List of search paths
-            
+
         Raises:
             ConfigurationError: If configuration is invalid
         """
@@ -497,14 +497,14 @@ class DylibBundler:
 
     def run_command(self, command: str, shell: bool = True) -> str:
         """Run a shell command and return its output.
-        
+
         Args:
             command: The command to run
             shell: Whether to run in a shell
-            
+
         Returns:
             The command output
-            
+
         Raises:
             CommandError: If the command fails
         """
@@ -689,7 +689,7 @@ class DylibBundler:
 
     def create_dest_dir(self) -> None:
         """Create the destination directory if needed.
-        
+
         Raises:
             FileError: if directory creation fails
         """
@@ -737,10 +737,10 @@ class DylibBundler:
 
     def adhoc_codesign(self, file: Path) -> None:
         """Apply ad-hoc code signing to a file.
-        
+
         Args:
             file: The file to sign
-            
+
         Raises:
             CommandError: If codesigning fails
         """
@@ -749,10 +749,10 @@ class DylibBundler:
 
         self.log.info("codesign %s", file)
         sign_command = f'codesign --force --deep --preserve-metadata=entitlements,requirements,flags,runtime --sign - "{file}"'
-        
+
         try:
             self.run_command(sign_command)
-        except CommandError as e:
+        except CommandError:
             self.log.error("An error occurred while applying ad-hoc signature to %s. Attempting workaround", file)
 
             try:
@@ -808,7 +808,7 @@ class DylibBundler:
             opt("-nc", "--no-color", help="disable color in logging", action="store_true")
 
             args = parser.parse_args()
-            
+
             # Setup logging
             setup_logging(args.debug_mode, not args.no_color)
 
