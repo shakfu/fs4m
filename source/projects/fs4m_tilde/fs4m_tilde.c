@@ -92,7 +92,8 @@ int has_long_args(long n_required, long argc, t_atom* argv)
 
 void ext_main(void* r)
 {
-    t_class* c = class_new("fs4m~", (method)fm_new, (method)fm_free, (long)sizeof(t_fm), 0L, A_GIMME, 0);
+    t_class* c = class_new("fs4m~", (method)fm_new,
+        (method)fm_free, (long)sizeof(t_fm), 0L, A_GIMME, 0);
 
     class_addmethod(c, (method)fm_bang,     "bang",     0);
     class_addmethod(c, (method)fm_mute,     "mute",     0);
@@ -153,13 +154,15 @@ void fm_init(t_fm* x)
         return;
     }
 
-    x->router = new_fluid_midi_router(x->settings, fluid_synth_handle_midi_event, (void *)x->synth);
+    x->router = new_fluid_midi_router(x->settings, fluid_synth_handle_midi_event,
+        (void *)x->synth);
     if(x->router == NULL) {
         fm_error(x, "Creating midi router failed.");
         return;
     }
 
-    x->mdriver = new_fluid_midi_driver(x->settings, fluid_midi_router_handle_midi_event, (void *)x->router);
+    x->mdriver = new_fluid_midi_driver(x->settings,
+        fluid_midi_router_handle_midi_event, (void *)x->router);
     if(x->mdriver == NULL) {
         fm_error(x, "Creating midi driver failed.");
         return;
@@ -170,9 +173,11 @@ void fm_init(t_fm* x)
         fm_error(x, "Creating midi player failed.");
         return;
     }
-    fluid_player_set_playback_callback(x->player, fluid_midi_router_handle_midi_event, x->router);
+    fluid_player_set_playback_callback(x->player,
+        fluid_midi_router_handle_midi_event, x->router);
 
-    x->cmd_handler = new_fluid_cmd_handler2(x->settings, x->synth, x->router, x->player);
+    x->cmd_handler = new_fluid_cmd_handler2(x->settings, x->synth, x->router,
+        x->player);
     if(x->cmd_handler == NULL) {
         fm_error(x, "Creating cmd_handler failed.");
         return;
@@ -275,8 +280,7 @@ t_max_err fm_load(t_fm* x, t_symbol* sfont)
 {
     t_symbol* sfont_path = fm_locate_path_from_symbol(x, sfont);
     x->sfont_id = fluid_synth_sfload(x->synth, sfont_path->s_name, 1);
-    if(x->sfont_id == FLUID_FAILED)
-    {
+    if(x->sfont_id == FLUID_FAILED) {
         fm_error(x, "Loading SoundFont '%s' failed!", sfont->s_name);
         return MAX_ERR_GENERIC;
     }
@@ -533,8 +537,9 @@ void fm_perform64(t_fm* x, t_object* dsp64, double** ins, long numins, double** 
 
     if (x->mute == 0) {
         err = fluid_synth_write_float(x->synth, n, left_buf, 0, 1, right_buf, 0, 1);
-        if(err == FLUID_FAILED)
+        if(err == FLUID_FAILED) {
             error("Problem writing samples");
+        }
 
         for (int i = 0; i < n; i++) {
             left_out[i] = left_buf[i];

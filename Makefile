@@ -11,8 +11,16 @@ ARCH=$(shell uname -m)
 DMG=$(PACKAGE_NAME)-$(VERSION)-$(ARCH).dmg
 ENTITLEMENTS = source/scripts/entitlements.plist
 VERSION=0.1.0
+HOMEBREW=$(shell brew --prefix)
+HOMEBREW_INCLUDES=$(HOMEBREW)/include
+CLANG_TIDY=$(HOMEBREW)/opt/llvm/bin/clang-tidy
+MAX_INCLUDES=source/max-sdk-base/c74support/max-includes
+MSP_INCLUDES=source/max-sdk-base/c74support/msp-includes
 
-.PHONY: all build static universal thirdparty bundle setup clean reset
+
+
+.PHONY: all build static universal thirdparty bundle setup clean reset \
+		tidy-fs4m tidy-fs tidy-fsm
 
 all: build
 
@@ -68,3 +76,14 @@ setup:
 		echo "... symlink already exists" ; \
 	fi
 
+tidy-fs4m:
+	@$(CLANG_TIDY) source/projects/fs4m_tilde/fs4m_tilde.c -- \
+		-I $(MAX_INCLUDES) -I $(MSP_INCLUDES) -I $(HOMEBREW_INCLUDES)
+
+tidy-fs:
+	@$(CLANG_TIDY) source/projects/fs_tilde/fs_tilde.c -- \
+		-I $(MAX_INCLUDES) -I $(MSP_INCLUDES) -I $(HOMEBREW_INCLUDES)
+
+tidy-fsm:
+	@$(CLANG_TIDY) source/projects/fs_tilde/fsm_tilde.c -- \
+		-I $(MAX_INCLUDES) -I $(MSP_INCLUDES) -I $(HOMEBREW_INCLUDES)

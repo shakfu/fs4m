@@ -1,5 +1,10 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,modernize-*,performance-*,readability-*'
+Checks: >
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  modernize-*,
+  performance-*,
+  readability-*
 WarningsAsErrors: ''
 HeaderFileExtensions:
   - ''
@@ -36,6 +41,8 @@ CheckOptions:
   llvm-else-after-return.WarnOnConditionVariables: 'false'
   llvm-else-after-return.WarnOnUnfixable: 'false'
   llvm-qualified-auto.AddConstToQualified: 'false'
+  readability-identifier-length.MinimumVariableNameLength: '0'
+  readability-identifier-length.MinimumParameterNameLength: '0'
 SystemHeaders:   false
 ...
 
