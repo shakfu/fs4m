@@ -297,51 +297,97 @@ class Dependency:
                 e.output
             )
 
-    def search_filename_in_rpaths(self, rpath_file: Path, dependent_file: Path) -> Path:
-        """Search for a filename in rpaths."""
-        fullpath = Path()
+    def _resolve_rpath(self, rpath: Path, file_prefix: Path) -> Optional[Path]:
+        """Resolve a single rpath to its full path.
+
+        Args:
+            rpath: The rpath to resolve
+            file_prefix: The prefix path for @loader_path resolution
+
+        Returns:
+            The resolved path if successful, None otherwise
+        """
+        path_to_check = Path()
+        if "@loader_path" in str(rpath):
+            path_to_check = Path(str(rpath).replace("@loader_path/", str(file_prefix)))
+        elif "@rpath" in str(rpath):
+            path_to_check = Path(str(rpath).replace("@rpath/", str(file_prefix)))
+
+        try:
+            fullpath = path_to_check.resolve()
+            self.parent.rpath_to_fullpath[rpath] = fullpath
+            return fullpath
+        except OSError:
+            return None
+
+    def _search_in_rpaths(self, rpath_file: Path, dependent_file: Path) -> Optional[Path]:
+        """Search for a file in rpaths.
+
+        Args:
+            rpath_file: The rpath file to search for
+            dependent_file: The file that depends on the rpath
+
+        Returns:
+            The resolved path if found, None otherwise
+        """
+        file_prefix = dependent_file.parent
         suffix = re.sub(r"^@[a-z_]+path/", "", str(rpath_file))
 
-        def _check_path(path: Path) -> bool:
-            """Check if a path is valid."""
-            file_prefix = dependent_file.parent
-            if dependent_file != rpath_file:
-                path_to_check = Path()
-                if "@loader_path" in str(path):
-                    path_to_check = Path(str(path).replace("@loader_path/", str(file_prefix)))
-                elif "@rpath" in str(path):
-                    path_to_check = Path(str(path).replace("@rpath/", str(file_prefix)))
-
-                try:
-                    fullpath = path_to_check.resolve()
-                    self.parent.rpath_to_fullpath[rpath_file] = fullpath
-                    return True
-                except OSError:
-                    return False
-            return False
-
+        # Check if already resolved
         if rpath_file in self.parent.rpath_to_fullpath:
-            fullpath = self.parent.rpath_to_fullpath[rpath_file]
-        elif not _check_path(rpath_file):
-            for rpath in self.parent.rpaths_per_file[dependent_file]:
-                if _check_path(rpath / suffix):
-                    break
+            return self.parent.rpath_to_fullpath[rpath_file]
 
-            if rpath_file in self.parent.rpath_to_fullpath:
-                fullpath = self.parent.rpath_to_fullpath[rpath_file]
+        # Try to resolve directly
+        if self._resolve_rpath(rpath_file, file_prefix):
+            return self.parent.rpath_to_fullpath[rpath_file]
 
-        if not fullpath:
-            for search_path in self.parent.search_paths:
-                if (search_path / suffix).exists():
-                    fullpath = search_path / suffix
-                    break
+        # Try all rpaths for the dependent file
+        for rpath in self.parent.rpaths_per_file[dependent_file]:
+            if self._resolve_rpath(rpath / suffix, file_prefix):
+                return self.parent.rpath_to_fullpath[rpath_file]
 
-            if not fullpath:
-                self.log.warning("can't get path for '%s'", rpath_file)
-                fullpath = self._get_user_input_dir_for_file(suffix) / suffix
-                fullpath = fullpath.resolve()
+        return None
 
-        return fullpath
+    def _search_in_search_paths(self, suffix: str) -> Optional[Path]:
+        """Search for a file in configured search paths.
+
+        Args:
+            suffix: The file suffix to search for
+
+        Returns:
+            The path if found, None otherwise
+        """
+        for search_path in self.parent.search_paths:
+            if (search_path / suffix).exists():
+                return search_path / suffix
+        return None
+
+    def search_filename_in_rpaths(self, rpath_file: Path, dependent_file: Path) -> Path:
+        """Search for a filename in rpaths.
+
+        Args:
+            rpath_file: The rpath file to search for
+            dependent_file: The file that depends on the rpath
+
+        Returns:
+            The resolved path to the file
+        """
+        suffix = re.sub(r"^@[a-z_]+path/", "", str(rpath_file))
+
+        # Try to find in rpaths
+        fullpath = self._search_in_rpaths(rpath_file, dependent_file)
+        if fullpath:
+            return fullpath
+
+        # Try to find in search paths
+        fullpath = self._search_in_search_paths(suffix)
+        if fullpath:
+            return fullpath
+
+        # If not found, ask user for help
+        self.log.warning("can't get path for '%s'", rpath_file)
+        fullpath = self._get_user_input_dir_for_file(suffix) / suffix
+        return fullpath.resolve()
 
     def get_original_path(self) -> Path:
         """Get the original path."""
@@ -521,7 +567,7 @@ class DylibBundler:
         except subprocess.CalledProcessError as e:
             raise CommandError(command, e.returncode, e.output)
 
-    def chmod(self, path, perm=0o777):
+    def chmod(self, path: Pathlike, perm: int = 0o777) -> None:
         """Change permission of file"""
         self.log.info("change permission of %s to %s", path, perm)
         os.chmod(path, perm)
