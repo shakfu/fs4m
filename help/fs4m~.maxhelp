@@ -67,8 +67,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 337.0, 25.0, 176.0, 22.0 ],
-					"text" : "set synth.reverb.room-size 0.5"
+					"patching_rect" : [ 337.0, 25.0, 196.0, 22.0 ],
+					"text" : "cmd set synth.reverb.room-size 0.9"
 				}
 
 			}
@@ -117,7 +117,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 244.0, 51.0, 61.0, 22.0 ],
+					"patching_rect" : [ 242.0, 69.0, 61.0, 22.0 ],
 					"text" : "cmd fonts"
 				}
 
@@ -131,8 +131,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 337.0, 51.0, 139.0, 22.0 ],
-					"text" : "set synth.reverb.active 1"
+					"patching_rect" : [ 337.0, 51.0, 165.0, 22.0 ],
+					"text" : "cmd set synth.reverb.active 1"
 				}
 
 			}
@@ -145,8 +145,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 293.0, 51.0, 31.0, 22.0 ],
-					"text" : "help"
+					"patching_rect" : [ 244.0, 39.0, 57.0, 22.0 ],
+					"text" : "cmd help"
 				}
 
 			}
@@ -507,7 +507,7 @@
 
 			}
  ],
-		"originid" : "pat-4",
+		"originid" : "pat-62",
 		"parameters" : 		{
 			"obj-2" : [ "live.gain~", "live.gain~", 0 ],
 			"parameterbanks" : 			{

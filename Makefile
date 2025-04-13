@@ -44,7 +44,7 @@ build: reset
 		cmake --build . --config '$(CONFIG)' && \
 		cmake --install . --config '$(CONFIG)'
 
-static: install_fs
+static: reset install_fs
 	@mkdir -p build && \
 		cd build && \
 		cmake -GXcode .. -DENABLE_HOMEBREW=ON -DBUILD_STATIC=ON && \
@@ -59,9 +59,7 @@ thirdparty:
 		cmake --install . --config '$(CONFIG)'
 
 clean:
-	@rm -rf \
-		build \
-		externals
+	@rm -rf build/CMakeCache.txt externals
 
 reset:
 	@rm -rf build externals
