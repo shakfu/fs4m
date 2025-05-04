@@ -1,10 +1,9 @@
-# install full stack dependencies to build the WarpBuf and Fauck chugins
 
 CWD=`pwd`
 THIRDPARTY=${CWD}/build/thirdparty
 PREFIX=${THIRDPARTY}/install
 REPO=https://github.com/FluidSynth/fluidsynth.git
-VERSION=v2.4.5
+VERSION=v2.4.6
 
 function setup() {
 	mkdir -p ${PREFIX}/include && \
